@@ -5,7 +5,7 @@ pub fn encode_v1(config: &Base64Config, data: &[u8]) -> Vec<u8> {
         return Vec::new();
     }
 
-    let output_len = (data.len() + 2) / 3 * 4;
+    let output_len = data.len().div_ceil(3) * 4;
     let mut output = Vec::with_capacity(output_len);
 
     let chunks = data.chunks(3);

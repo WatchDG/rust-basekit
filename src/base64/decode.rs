@@ -45,7 +45,7 @@ pub fn decode_v1(config: &Base64Config, data: &[u8]) -> Result<Vec<u8>, Base64Er
     }
 
     let mut output = Vec::new();
-    let total_groups = (data.len() + 3) / 4;
+    let total_groups = data.len().div_ceil(4);
 
     for group_idx in 0..total_groups {
         let i = group_idx * 4;
