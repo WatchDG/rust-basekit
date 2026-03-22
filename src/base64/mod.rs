@@ -10,5 +10,5 @@ pub use consts::{
     PADDING_BASE64,
 };
 pub use decode::decode_v1;
-pub use encode::encode_v1;
+pub use encode::{encode_into, encode_v1};
 pub use error::Base64Error;
