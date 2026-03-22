@@ -5,9 +5,6 @@ pub struct Base64Config {
 
 impl Base64Config {
     pub fn new(alphabet: &'static [u8; 64], padding: u8) -> Self {
-        Self {
-            alphabet,
-            padding,
-        }
+        Self { alphabet, padding }
     }
 }

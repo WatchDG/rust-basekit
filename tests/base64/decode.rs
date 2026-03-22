@@ -1,4 +1,4 @@
-use basekit::base64::{decode_v1, Base64Config, ALPHABET_BASE64, Base64Error};
+use basekit::base64::{ALPHABET_BASE64, Base64Config, Base64Error, decode_v1};
 
 fn create_config() -> Base64Config {
     Base64Config::new(ALPHABET_BASE64, b'=')
