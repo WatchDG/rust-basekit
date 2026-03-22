@@ -1,6 +1,6 @@
-use super::config::Base64Config;
-use super::consts::DECODE_TABLE;
-use super::error::Base64Error;
+use super::super::config::Base64Config;
+use super::super::consts::DECODE_TABLE;
+use super::super::error::Base64Error;
 
 pub fn decode_v1(config: &Base64Config, data: &[u8]) -> Result<Vec<u8>, Base64Error> {
     if data.is_empty() {
