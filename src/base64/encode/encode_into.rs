@@ -1,10 +1,15 @@
 use core::ptr;
 
 use super::super::config::Base64EncodeConfig;
+use super::super::error::Base64Error;
 
-pub fn encode_into(config: &Base64EncodeConfig, dst: &mut [u8], src: &[u8]) -> usize {
+pub fn encode_into(
+    config: &Base64EncodeConfig,
+    dst: &mut [u8],
+    src: &[u8],
+) -> Result<usize, Base64Error> {
     if src.is_empty() {
-        return 0;
+        return Ok(0);
     }
 
     let full_chunks = src.len() / 3;
@@ -18,11 +23,10 @@ pub fn encode_into(config: &Base64EncodeConfig, dst: &mut [u8], src: &[u8]) -> u
         };
 
     if dst.len() < output_len {
-        panic!(
-            "Destination buffer too small: need {}, have {}",
-            output_len,
-            dst.len()
-        );
+        return Err(Base64Error::DestinationBufferTooSmall {
+            needed: output_len,
+            provided: dst.len(),
+        });
     }
 
     let alphabet_ptr = config.alphabet.as_ptr();
@@ -83,6 +87,6 @@ pub fn encode_into(config: &Base64EncodeConfig, dst: &mut [u8], src: &[u8]) -> u
             _ => unreachable!(),
         }
 
-        output_len
+        Ok(output_len)
     }
 }
