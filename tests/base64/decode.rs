@@ -15,42 +15,42 @@ fn test_empty() {
 fn test_single_byte() {
     let config = create_config();
     let result = decode_v1(&config, b"Zg==");
-    assert_eq!(result.unwrap(), &[102]); // 'f'
+    assert_eq!(result.unwrap(), &[102]);
 }
 
 #[test]
 fn test_two_bytes() {
     let config = create_config();
     let result = decode_v1(&config, b"Zm8=");
-    assert_eq!(result.unwrap(), &[102, 111]); // 'fo'
+    assert_eq!(result.unwrap(), &[102, 111]);
 }
 
 #[test]
 fn test_three_bytes() {
     let config = create_config();
     let result = decode_v1(&config, b"Zm9v");
-    assert_eq!(result.unwrap(), &[102, 111, 111]); // 'foo'
+    assert_eq!(result.unwrap(), &[102, 111, 111]);
 }
 
 #[test]
 fn test_four_bytes() {
     let config = create_config();
     let result = decode_v1(&config, b"Zm9vYg==");
-    assert_eq!(result.unwrap(), &[102, 111, 111, 98]); // 'foob'
+    assert_eq!(result.unwrap(), &[102, 111, 111, 98]);
 }
 
 #[test]
 fn test_five_bytes() {
     let config = create_config();
     let result = decode_v1(&config, b"Zm9vYmE=");
-    assert_eq!(result.unwrap(), &[102, 111, 111, 98, 97]); // 'fooba'
+    assert_eq!(result.unwrap(), &[102, 111, 111, 98, 97]);
 }
 
 #[test]
 fn test_six_bytes() {
     let config = create_config();
     let result = decode_v1(&config, b"Zm9vYmFy");
-    assert_eq!(result.unwrap(), &[102, 111, 111, 98, 97, 114]); // 'foobar'
+    assert_eq!(result.unwrap(), &[102, 111, 111, 98, 97, 114]);
 }
 
 #[test]
@@ -111,4 +111,13 @@ fn test_too_much_padding() {
     let config = create_config();
     let result = decode_v1(&config, b"Zm9v===");
     assert!(matches!(result, Err(Base64Error::InvalidPadding)));
+}
+
+#[test]
+fn test_roundtrip_1kb() {
+    let config = create_config();
+    let original: Vec<u8> = (0..1024).map(|i| (i % 256) as u8).collect();
+    let encoded = basekit::base64::encode_v1(&config, &original);
+    let decoded = decode_v1(&config, &encoded).unwrap();
+    assert_eq!(decoded, original);
 }
