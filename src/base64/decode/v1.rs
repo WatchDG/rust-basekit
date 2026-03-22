@@ -26,24 +26,6 @@ pub fn decode_v1(config: &Base64Config, data: &[u8]) -> Result<Vec<u8>, Base64Er
         return Ok(Vec::new());
     }
 
-    for (i, &byte) in data.iter().enumerate() {
-        if byte == config.padding {
-            if i < clean_len {
-                return Err(Base64Error::InvalidPadding);
-            }
-            continue;
-        }
-
-        if byte >= 128 {
-            return Err(Base64Error::InvalidCharacter(byte, i));
-        }
-
-        let val = DECODE_TABLE[byte as usize];
-        if val < 0 {
-            return Err(Base64Error::InvalidCharacter(byte, i));
-        }
-    }
-
     let output_len = (clean_len * 3) / 4;
     let mut output = Vec::with_capacity(output_len);
     let total_groups = data.len().div_ceil(4);
@@ -54,10 +36,22 @@ pub fn decode_v1(config: &Base64Config, data: &[u8]) -> Result<Vec<u8>, Base64Er
 
         let mut indices: [i8; 4] = [0; 4];
         for (j, &byte) in chunk.iter().enumerate() {
+            let pos = i + j;
+
             if byte == config.padding {
+                if pos < clean_len {
+                    return Err(Base64Error::InvalidPadding);
+                }
                 indices[j] = 0;
             } else {
-                indices[j] = DECODE_TABLE[byte as usize];
+                if byte >= 128 {
+                    return Err(Base64Error::InvalidCharacter(byte, pos));
+                }
+                let val = DECODE_TABLE[byte as usize];
+                if val < 0 {
+                    return Err(Base64Error::InvalidCharacter(byte, pos));
+                }
+                indices[j] = val;
             }
         }
 

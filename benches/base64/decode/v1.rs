@@ -32,7 +32,8 @@ pub fn decode_benchmarks(c: &mut Criterion) {
         });
     });
 
-    group.bench_with_input(BenchmarkId::from_parameter("1kb"), &1024, |b, &size| {
+    let size_1kb = 1024;
+    group.bench_with_input(BenchmarkId::from_parameter("1kb"), &size_1kb, |b, &size| {
         let config = create_config();
         let original: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
         let encoded = encode_v1(&config, &original);
@@ -41,18 +42,15 @@ pub fn decode_benchmarks(c: &mut Criterion) {
         });
     });
 
-    group.bench_with_input(
-        BenchmarkId::from_parameter("1mb"),
-        &(1024 * 1024),
-        |b, &size| {
-            let config = create_config();
-            let original: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
-            let encoded = encode_v1(&config, &original);
-            b.iter(|| {
-                black_box(decode_v1(black_box(&config), black_box(&encoded)).unwrap());
-            });
-        },
-    );
+    let size_1mb = 1024 * 1024;
+    group.bench_with_input(BenchmarkId::from_parameter("1mb"), &size_1mb, |b, &size| {
+        let config = create_config();
+        let original: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
+        let encoded = encode_v1(&config, &original);
+        b.iter(|| {
+            black_box(decode_v1(black_box(&config), black_box(&encoded)).unwrap());
+        });
+    });
 
     group.finish();
 }

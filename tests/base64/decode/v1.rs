@@ -100,6 +100,16 @@ fn test_invalid_character() {
 }
 
 #[test]
+fn test_invalid_character_high_byte() {
+    let config = create_config();
+    let result = decode_v1(&config, b"Zm\xFFv");
+    assert!(matches!(
+        result,
+        Err(Base64Error::InvalidCharacter(0xFF, _))
+    ));
+}
+
+#[test]
 fn test_invalid_padding_position() {
     let config = create_config();
     let result = decode_v1(&config, b"=Zm9v");
@@ -120,4 +130,18 @@ fn test_roundtrip_1kb() {
     let encoded = encode_v1(&config, &original);
     let decoded = decode_v1(&config, &encoded).unwrap();
     assert_eq!(decoded, original);
+}
+
+#[test]
+fn test_invalid_character_at_different_positions() {
+    let config = create_config();
+
+    let result = decode_v1(&config, b"!m9vYg==");
+    assert!(matches!(result, Err(Base64Error::InvalidCharacter(_, 0))));
+
+    let result = decode_v1(&config, b"Z!9vYg==");
+    assert!(matches!(result, Err(Base64Error::InvalidCharacter(_, 1))));
+
+    let result = decode_v1(&config, b"Zm!vYg==");
+    assert!(matches!(result, Err(Base64Error::InvalidCharacter(_, 2))));
 }
