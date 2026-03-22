@@ -15,40 +15,67 @@ pub fn encode_v1(config: &Base64EncodeConfig, data: &[u8]) -> Vec<u8> {
             _ => unreachable!(),
         };
 
-    let mut output = Vec::with_capacity(output_len);
-    let alphabet = config.alphabet;
+    let mut output: Vec<u8> = Vec::with_capacity(output_len);
+    let alphabet_ptr = config.alphabet.as_ptr();
+    let padding = config.padding;
 
-    for chunk in data[..full_chunks * 3].chunks_exact(3) {
-        let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
-        let buf = [
-            alphabet[(triple >> 18) as usize & 0x3F],
-            alphabet[(triple >> 12) as usize & 0x3F],
-            alphabet[(triple >> 6) as usize & 0x3F],
-            alphabet[triple as usize & 0x3F],
-        ];
-        output.extend_from_slice(&buf);
-    }
+    unsafe {
+        let mut offset = 0;
 
-    match remainder {
-        1 => {
-            let triple = (data[data.len() - 1] as u32) << 16;
-            let c0 = ((triple >> 18) & 0x3F) as usize;
-            let c1 = ((triple >> 12) & 0x3F) as usize;
-            let buf = [alphabet[c0], alphabet[c1], config.padding, config.padding];
-            output.extend_from_slice(&buf);
+        for chunk in data[..full_chunks * 3].chunks_exact(3) {
+            let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
+            let ptr = output.as_mut_ptr().add(offset);
+
+            ptr.write(alphabet_ptr.offset((triple >> 18 & 0x3F) as isize).read());
+            ptr.offset(1)
+                .write(alphabet_ptr.offset((triple >> 12 & 0x3F) as isize).read());
+            ptr.offset(2)
+                .write(alphabet_ptr.offset((triple >> 6 & 0x3F) as isize).read());
+            ptr.offset(3)
+                .write(alphabet_ptr.offset((triple & 0x3F) as isize).read());
+
+            offset += 4;
         }
-        2 => {
-            let triple =
-                ((data[data.len() - 2] as u32) << 16) | ((data[data.len() - 1] as u32) << 8);
-            let c0 = ((triple >> 18) & 0x3F) as usize;
-            let c1 = ((triple >> 12) & 0x3F) as usize;
-            let c2 = ((triple >> 6) & 0x3F) as usize;
-            let buf = [alphabet[c0], alphabet[c1], alphabet[c2], config.padding];
-            output.extend_from_slice(&buf);
+
+        match remainder {
+            1 => {
+                let triple = (data[data.len() - 1] as u32) << 16;
+                let c0 = ((triple >> 18) & 0x3F) as isize;
+                let c1 = ((triple >> 12) & 0x3F) as isize;
+                let ptr = output.as_mut_ptr().add(offset);
+
+                ptr.write(alphabet_ptr.offset(c0).read());
+                ptr.offset(1).write(alphabet_ptr.offset(c1).read());
+                ptr.offset(2).write(padding);
+                ptr.offset(3).write(padding);
+            }
+            2 => {
+                let triple =
+                    ((data[data.len() - 2] as u32) << 16) | ((data[data.len() - 1] as u32) << 8);
+                let c0 = ((triple >> 18) & 0x3F) as isize;
+                let c1 = ((triple >> 12) & 0x3F) as isize;
+                let c2 = ((triple >> 6) & 0x3F) as isize;
+                let ptr = output.as_mut_ptr().add(offset);
+
+                ptr.write(alphabet_ptr.offset(c0).read());
+                ptr.offset(1).write(alphabet_ptr.offset(c1).read());
+                ptr.offset(2).write(alphabet_ptr.offset(c2).read());
+                ptr.offset(3).write(padding);
+            }
+            0 => {}
+            _ => unreachable!(),
         }
-        0 => {}
-        _ => unreachable!(),
+
+        output.set_len(output_len);
     }
 
     output
+}
+
+#[deprecated(
+    since = "0.1.0",
+    note = "Use encode_v1 instead - it now uses unsafe ptr-write"
+)]
+pub fn encode_v1_unsafe(config: &Base64EncodeConfig, data: &[u8]) -> Vec<u8> {
+    encode_v1(config, data)
 }
