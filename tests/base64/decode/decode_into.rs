@@ -157,14 +157,18 @@ fn test_exact_buffer_size() {
 }
 
 #[test]
-fn test_buffer_too_small_panics() {
+fn test_buffer_too_small_returns_error() {
     let config = create_config();
     let data = b"SGVsbG8=";
-    let mut dst = vec![0u8; 2];
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let _ = decode_into(&config, &mut dst, data);
-    }));
-    assert!(result.is_err());
+    let mut dst = vec![0u8; 3];
+    let result = decode_into(&config, &mut dst, data);
+    assert!(matches!(
+        result,
+        Err(Base64Error::DestinationBufferTooSmall {
+            needed: 5,
+            provided: 3
+        })
+    ));
 }
 
 #[test]

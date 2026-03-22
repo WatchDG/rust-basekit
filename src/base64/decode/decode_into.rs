@@ -31,11 +31,10 @@ pub fn decode_into(
 
     let output_len = (clean_len * 3) / 4;
     if dst.len() < output_len {
-        panic!(
-            "Destination buffer too small: need {}, have {}",
-            output_len,
-            dst.len()
-        );
+        return Err(Base64Error::DestinationBufferTooSmall {
+            needed: output_len,
+            provided: dst.len(),
+        });
     }
 
     let total_groups = src.len().div_ceil(4);
