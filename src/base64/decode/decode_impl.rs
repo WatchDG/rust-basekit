@@ -1,7 +1,7 @@
 use super::super::config::Base64DecodeConfig;
 use super::super::error::Base64Error;
 
-pub fn decode_v1(config: &Base64DecodeConfig, data: &[u8]) -> Result<Vec<u8>, Base64Error> {
+pub fn decode(config: &Base64DecodeConfig, data: &[u8]) -> Result<Vec<u8>, Base64Error> {
     if data.is_empty() {
         return Ok(Vec::new());
     }

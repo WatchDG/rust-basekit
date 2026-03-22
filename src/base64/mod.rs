@@ -9,6 +9,6 @@ pub use consts::{
     ALPHABET_BASE64, ALPHABET_BASE64_URL, DECODE_TABLE_BASE64, DECODE_TABLE_BASE64_URL,
     PADDING_BASE64,
 };
-pub use decode::{decode_into, decode_v1};
-pub use encode::{encode_into, encode_v1};
+pub use decode::{decode, decode_into};
+pub use encode::{encode, encode_into};
 pub use error::Base64Error;

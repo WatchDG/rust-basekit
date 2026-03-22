@@ -1,4 +1,4 @@
-use basekit::base64::{ALPHABET_BASE64, Base64EncodeConfig, encode_into, encode_v1};
+use basekit::base64::{ALPHABET_BASE64, Base64EncodeConfig, encode, encode_into};
 
 fn create_config() -> Base64EncodeConfig {
     Base64EncodeConfig::new(ALPHABET_BASE64, b'=')
@@ -133,15 +133,15 @@ fn test_buffer_too_small_panics() {
 }
 
 #[test]
-fn test_consistency_with_encode_v1() {
+fn test_consistency_with_encode() {
     let config = create_config();
     let data = b"Hello, World! The quick brown fox jumps over the lazy dog.";
 
-    let result_v1 = encode_v1(&config, data);
+    let result = encode(&config, data);
 
     let mut dst = vec![0u8; data.len() / 3 * 4 + 10];
     let len = encode_into(&config, &mut dst, data);
 
-    assert_eq!(len, result_v1.len());
-    assert_eq!(&dst[..len], &result_v1[..]);
+    assert_eq!(len, result.len());
+    assert_eq!(&dst[..len], &result[..]);
 }

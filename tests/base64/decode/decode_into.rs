@@ -1,6 +1,4 @@
-use basekit::base64::{
-    Base64DecodeConfig, Base64Error, DECODE_TABLE_BASE64, decode_into, decode_v1,
-};
+use basekit::base64::{Base64DecodeConfig, Base64Error, DECODE_TABLE_BASE64, decode, decode_into};
 
 fn create_config() -> Base64DecodeConfig {
     Base64DecodeConfig::new(DECODE_TABLE_BASE64, b'=')
@@ -170,15 +168,15 @@ fn test_buffer_too_small_panics() {
 }
 
 #[test]
-fn test_consistency_with_decode_v1() {
+fn test_consistency_with_decode() {
     let config = create_config();
     let data = b"SGVsbG8gV29ybGQh"; // "Hello World!" encoded without padding
 
-    let result_v1 = decode_v1(&config, data).unwrap();
+    let result = decode(&config, data).unwrap();
 
     let mut dst = vec![0u8; data.len()];
     let len = decode_into(&config, &mut dst, data).unwrap();
 
-    assert_eq!(len, result_v1.len());
-    assert_eq!(&dst[..len], &result_v1[..]);
+    assert_eq!(len, result.len());
+    assert_eq!(&dst[..len], &result[..]);
 }

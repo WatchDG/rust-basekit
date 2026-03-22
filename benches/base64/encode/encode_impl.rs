@@ -1,4 +1,4 @@
-use basekit::base64::{ALPHABET_BASE64, Base64EncodeConfig, encode_v1};
+use basekit::base64::{ALPHABET_BASE64, Base64EncodeConfig, encode};
 use criterion::{BenchmarkId, Criterion, black_box};
 
 fn create_config() -> Base64EncodeConfig {
@@ -12,7 +12,7 @@ pub fn encode_benchmarks(c: &mut Criterion) {
         let config = create_config();
         let data = b"Hello, World!";
         b.iter(|| {
-            black_box(encode_v1(black_box(&config), black_box(data)));
+            black_box(encode(black_box(&config), black_box(data)));
         });
     });
 
@@ -20,7 +20,7 @@ pub fn encode_benchmarks(c: &mut Criterion) {
         let config = create_config();
         let data = b"The quick brown fox jumps over the lazy dog";
         b.iter(|| {
-            black_box(encode_v1(black_box(&config), black_box(data)));
+            black_box(encode(black_box(&config), black_box(data)));
         });
     });
 
@@ -28,7 +28,7 @@ pub fn encode_benchmarks(c: &mut Criterion) {
         let config = create_config();
         let data = b"The quick brown fox jumps over the lazy dog. Lorem ipsum dolor sit amet.";
         b.iter(|| {
-            black_box(encode_v1(black_box(&config), black_box(data)));
+            black_box(encode(black_box(&config), black_box(data)));
         });
     });
 
@@ -36,7 +36,7 @@ pub fn encode_benchmarks(c: &mut Criterion) {
         let config = create_config();
         let data: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
         b.iter(|| {
-            black_box(encode_v1(black_box(&config), black_box(&data)));
+            black_box(encode(black_box(&config), black_box(&data)));
         });
     });
 
@@ -47,7 +47,7 @@ pub fn encode_benchmarks(c: &mut Criterion) {
             let config = create_config();
             let data: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
             b.iter(|| {
-                black_box(encode_v1(black_box(&config), black_box(&data)));
+                black_box(encode(black_box(&config), black_box(&data)));
             });
         },
     );

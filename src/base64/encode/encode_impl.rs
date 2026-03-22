@@ -1,6 +1,6 @@
 use super::super::config::Base64EncodeConfig;
 
-pub fn encode_v1(config: &Base64EncodeConfig, data: &[u8]) -> Vec<u8> {
+pub fn encode(config: &Base64EncodeConfig, data: &[u8]) -> Vec<u8> {
     if data.is_empty() {
         return Vec::new();
     }
@@ -70,12 +70,4 @@ pub fn encode_v1(config: &Base64EncodeConfig, data: &[u8]) -> Vec<u8> {
     }
 
     output
-}
-
-#[deprecated(
-    since = "0.1.0",
-    note = "Use encode_v1 instead - it now uses unsafe ptr-write"
-)]
-pub fn encode_v1_unsafe(config: &Base64EncodeConfig, data: &[u8]) -> Vec<u8> {
-    encode_v1(config, data)
 }

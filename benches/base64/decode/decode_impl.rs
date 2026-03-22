@@ -1,6 +1,5 @@
 use basekit::base64::{
-    ALPHABET_BASE64, Base64DecodeConfig, Base64EncodeConfig, DECODE_TABLE_BASE64, decode_v1,
-    encode_v1,
+    ALPHABET_BASE64, Base64DecodeConfig, Base64EncodeConfig, DECODE_TABLE_BASE64, decode, encode,
 };
 use criterion::{BenchmarkId, Criterion, black_box};
 
@@ -19,7 +18,7 @@ pub fn decode_benchmarks(c: &mut Criterion) {
         let config = create_decode_config();
         let data = b"SGVsbG8sIFdvcmxkIQ==";
         b.iter(|| {
-            black_box(decode_v1(black_box(&config), black_box(data)).unwrap());
+            black_box(decode(black_box(&config), black_box(data)).unwrap());
         });
     });
 
@@ -27,7 +26,7 @@ pub fn decode_benchmarks(c: &mut Criterion) {
         let config = create_decode_config();
         let data = b"VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZw==";
         b.iter(|| {
-            black_box(decode_v1(black_box(&config), black_box(data)).unwrap());
+            black_box(decode(black_box(&config), black_box(data)).unwrap());
         });
     });
 
@@ -35,7 +34,7 @@ pub fn decode_benchmarks(c: &mut Criterion) {
         let config = create_decode_config();
         let data = b"VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZy4gTG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQu";
         b.iter(|| {
-            black_box(decode_v1(black_box(&config), black_box(data)).unwrap());
+            black_box(decode(black_box(&config), black_box(data)).unwrap());
         });
     });
 
@@ -44,9 +43,9 @@ pub fn decode_benchmarks(c: &mut Criterion) {
         let encode_config = create_encode_config();
         let decode_config = create_decode_config();
         let original: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
-        let encoded = encode_v1(&encode_config, &original);
+        let encoded = encode(&encode_config, &original);
         b.iter(|| {
-            black_box(decode_v1(black_box(&decode_config), black_box(&encoded)).unwrap());
+            black_box(decode(black_box(&decode_config), black_box(&encoded)).unwrap());
         });
     });
 
@@ -55,9 +54,9 @@ pub fn decode_benchmarks(c: &mut Criterion) {
         let encode_config = create_encode_config();
         let decode_config = create_decode_config();
         let original: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
-        let encoded = encode_v1(&encode_config, &original);
+        let encoded = encode(&encode_config, &original);
         b.iter(|| {
-            black_box(decode_v1(black_box(&decode_config), black_box(&encoded)).unwrap());
+            black_box(decode(black_box(&decode_config), black_box(&encoded)).unwrap());
         });
     });
 
@@ -72,8 +71,8 @@ pub fn roundtrip_benchmarks(c: &mut Criterion) {
         let decode_config = create_decode_config();
         let data = b"Hello, World!";
         b.iter(|| {
-            let encoded = encode_v1(black_box(&encode_config), black_box(data));
-            black_box(decode_v1(black_box(&decode_config), &encoded).unwrap());
+            let encoded = encode(black_box(&encode_config), black_box(data));
+            black_box(decode(black_box(&decode_config), &encoded).unwrap());
         });
     });
 
@@ -82,8 +81,8 @@ pub fn roundtrip_benchmarks(c: &mut Criterion) {
         let decode_config = create_decode_config();
         let data = b"The quick brown fox jumps over the lazy dog";
         b.iter(|| {
-            let encoded = encode_v1(black_box(&encode_config), black_box(data));
-            black_box(decode_v1(black_box(&decode_config), &encoded).unwrap());
+            let encoded = encode(black_box(&encode_config), black_box(data));
+            black_box(decode(black_box(&decode_config), &encoded).unwrap());
         });
     });
 
@@ -92,8 +91,8 @@ pub fn roundtrip_benchmarks(c: &mut Criterion) {
         let decode_config = create_decode_config();
         let data = b"The quick brown fox jumps over the lazy dog. Lorem ipsum dolor sit amet.";
         b.iter(|| {
-            let encoded = encode_v1(black_box(&encode_config), black_box(data));
-            black_box(decode_v1(black_box(&decode_config), &encoded).unwrap());
+            let encoded = encode(black_box(&encode_config), black_box(data));
+            black_box(decode(black_box(&decode_config), &encoded).unwrap());
         });
     });
 

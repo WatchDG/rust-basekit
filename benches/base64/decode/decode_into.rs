@@ -1,6 +1,6 @@
 use basekit::base64::{
     ALPHABET_BASE64, Base64DecodeConfig, Base64EncodeConfig, DECODE_TABLE_BASE64, decode_into,
-    encode_v1,
+    encode,
 };
 use criterion::{BenchmarkId, Criterion, black_box};
 
@@ -52,7 +52,7 @@ pub fn decode_into_benchmarks(c: &mut Criterion) {
         let encode_config = create_encode_config();
         let decode_config = create_decode_config();
         let original: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
-        let encoded = encode_v1(&encode_config, &original);
+        let encoded = encode(&encode_config, &original);
         let mut dst = vec![0u8; encoded.len()];
         b.iter(|| {
             let len = decode_into(
@@ -70,7 +70,7 @@ pub fn decode_into_benchmarks(c: &mut Criterion) {
         let encode_config = create_encode_config();
         let decode_config = create_decode_config();
         let original: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
-        let encoded = encode_v1(&encode_config, &original);
+        let encoded = encode(&encode_config, &original);
         let mut dst = vec![0u8; encoded.len()];
         b.iter(|| {
             let len = decode_into(
