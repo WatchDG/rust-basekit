@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Base64Error {
     InvalidCharacter(u8, usize),
     InvalidPadding,

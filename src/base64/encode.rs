@@ -20,10 +20,13 @@ pub fn encode_v1(config: &Base64Config, data: &[u8]) -> Vec<u8> {
 
     for chunk in data[..full_chunks * 3].chunks_exact(3) {
         let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
-        output.push(alphabet[(triple >> 18) as usize & 0x3F]);
-        output.push(alphabet[(triple >> 12) as usize & 0x3F]);
-        output.push(alphabet[(triple >> 6) as usize & 0x3F]);
-        output.push(alphabet[triple as usize & 0x3F]);
+        let buf = [
+            alphabet[(triple >> 18) as usize & 0x3F],
+            alphabet[(triple >> 12) as usize & 0x3F],
+            alphabet[(triple >> 6) as usize & 0x3F],
+            alphabet[triple as usize & 0x3F],
+        ];
+        output.extend_from_slice(&buf);
     }
 
     match remainder {
@@ -31,10 +34,8 @@ pub fn encode_v1(config: &Base64Config, data: &[u8]) -> Vec<u8> {
             let triple = (data[data.len() - 1] as u32) << 16;
             let c0 = ((triple >> 18) & 0x3F) as usize;
             let c1 = ((triple >> 12) & 0x3F) as usize;
-            output.push(alphabet[c0]);
-            output.push(alphabet[c1]);
-            output.push(config.padding);
-            output.push(config.padding);
+            let buf = [alphabet[c0], alphabet[c1], config.padding, config.padding];
+            output.extend_from_slice(&buf);
         }
         2 => {
             let triple =
@@ -42,10 +43,8 @@ pub fn encode_v1(config: &Base64Config, data: &[u8]) -> Vec<u8> {
             let c0 = ((triple >> 18) & 0x3F) as usize;
             let c1 = ((triple >> 12) & 0x3F) as usize;
             let c2 = ((triple >> 6) & 0x3F) as usize;
-            output.push(alphabet[c0]);
-            output.push(alphabet[c1]);
-            output.push(alphabet[c2]);
-            output.push(config.padding);
+            let buf = [alphabet[c0], alphabet[c1], alphabet[c2], config.padding];
+            output.extend_from_slice(&buf);
         }
         0 => {}
         _ => unreachable!(),

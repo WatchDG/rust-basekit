@@ -1,4 +1,4 @@
-use basekit::base64::{ALPHABET_BASE64, Base64Config, Base64Error, decode_v1};
+use basekit::base64::{ALPHABET_BASE64, Base64Config, Base64Error, decode_v1, encode_v1};
 
 fn create_config() -> Base64Config {
     Base64Config::new(ALPHABET_BASE64, b'=')
@@ -78,7 +78,7 @@ fn test_all_ones() {
 fn test_roundtrip() {
     let config = create_config();
     let original = b"Hello, World!";
-    let encoded = basekit::base64::encode_v1(&config, original);
+    let encoded = encode_v1(&config, original);
     let decoded = decode_v1(&config, &encoded).unwrap();
     assert_eq!(decoded, original);
 }
@@ -87,7 +87,7 @@ fn test_roundtrip() {
 fn test_roundtrip_large() {
     let config = create_config();
     let original = b"The quick brown fox jumps over the lazy dog";
-    let encoded = basekit::base64::encode_v1(&config, original);
+    let encoded = encode_v1(&config, original);
     let decoded = decode_v1(&config, &encoded).unwrap();
     assert_eq!(decoded, original);
 }
@@ -117,7 +117,7 @@ fn test_too_much_padding() {
 fn test_roundtrip_1kb() {
     let config = create_config();
     let original: Vec<u8> = (0..1024).map(|i| (i % 256) as u8).collect();
-    let encoded = basekit::base64::encode_v1(&config, &original);
+    let encoded = encode_v1(&config, &original);
     let decoded = decode_v1(&config, &encoded).unwrap();
     assert_eq!(decoded, original);
 }

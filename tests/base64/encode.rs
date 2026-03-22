@@ -73,3 +73,17 @@ fn test_all_ones() {
     let result = encode_v1(&config, &[0xFF, 0xFF, 0xFF]);
     assert_eq!(result, b"////");
 }
+
+#[test]
+fn test_large_random() {
+    let config = create_config();
+    let data: Vec<u8> = (0..1024).map(|i| (i % 256) as u8).collect();
+    encode_v1(&config, &data);
+}
+
+#[test]
+fn test_1mb_random() {
+    let config = create_config();
+    let data: Vec<u8> = (0..1024 * 1024).map(|i| (i % 256) as u8).collect();
+    encode_v1(&config, &data);
+}
