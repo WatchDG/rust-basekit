@@ -1,8 +1,7 @@
-use super::super::config::Base64Config;
-use super::super::consts::DECODE_TABLE;
+use super::super::config::Base64DecodeConfig;
 use super::super::error::Base64Error;
 
-pub fn decode_v1(config: &Base64Config, data: &[u8]) -> Result<Vec<u8>, Base64Error> {
+pub fn decode_v1(config: &Base64DecodeConfig, data: &[u8]) -> Result<Vec<u8>, Base64Error> {
     if data.is_empty() {
         return Ok(Vec::new());
     }
@@ -29,6 +28,7 @@ pub fn decode_v1(config: &Base64Config, data: &[u8]) -> Result<Vec<u8>, Base64Er
     let output_len = (clean_len * 3) / 4;
     let mut output = Vec::with_capacity(output_len);
     let total_groups = data.len().div_ceil(4);
+    let decode_table = config.decode_table;
 
     for group_idx in 0..total_groups {
         let i = group_idx * 4;
@@ -47,7 +47,7 @@ pub fn decode_v1(config: &Base64Config, data: &[u8]) -> Result<Vec<u8>, Base64Er
                 if byte >= 128 {
                     return Err(Base64Error::InvalidCharacter(byte, pos));
                 }
-                let val = DECODE_TABLE[byte as usize];
+                let val = decode_table[byte as usize];
                 if val < 0 {
                     return Err(Base64Error::InvalidCharacter(byte, pos));
                 }

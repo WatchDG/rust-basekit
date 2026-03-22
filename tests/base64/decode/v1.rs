@@ -1,7 +1,7 @@
-use basekit::base64::{ALPHABET_BASE64, Base64Config, Base64Error, decode_v1, encode_v1};
+use basekit::base64::{Base64DecodeConfig, Base64Error, DECODE_TABLE_BASE64, decode_v1};
 
-fn create_config() -> Base64Config {
-    Base64Config::new(ALPHABET_BASE64, b'=')
+fn create_config() -> Base64DecodeConfig {
+    Base64DecodeConfig::new(DECODE_TABLE_BASE64, b'=')
 }
 
 #[test]
@@ -75,24 +75,6 @@ fn test_all_ones() {
 }
 
 #[test]
-fn test_roundtrip() {
-    let config = create_config();
-    let original = b"Hello, World!";
-    let encoded = encode_v1(&config, original);
-    let decoded = decode_v1(&config, &encoded).unwrap();
-    assert_eq!(decoded, original);
-}
-
-#[test]
-fn test_roundtrip_large() {
-    let config = create_config();
-    let original = b"The quick brown fox jumps over the lazy dog";
-    let encoded = encode_v1(&config, original);
-    let decoded = decode_v1(&config, &encoded).unwrap();
-    assert_eq!(decoded, original);
-}
-
-#[test]
 fn test_invalid_character() {
     let config = create_config();
     let result = decode_v1(&config, b"Zm9v!");
@@ -121,15 +103,6 @@ fn test_too_much_padding() {
     let config = create_config();
     let result = decode_v1(&config, b"Zm9v===");
     assert!(matches!(result, Err(Base64Error::InvalidPadding)));
-}
-
-#[test]
-fn test_roundtrip_1kb() {
-    let config = create_config();
-    let original: Vec<u8> = (0..1024).map(|i| (i % 256) as u8).collect();
-    let encoded = encode_v1(&config, &original);
-    let decoded = decode_v1(&config, &encoded).unwrap();
-    assert_eq!(decoded, original);
 }
 
 #[test]

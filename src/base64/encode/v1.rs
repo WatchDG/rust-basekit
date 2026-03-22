@@ -1,6 +1,6 @@
-use super::super::config::Base64Config;
+use super::super::config::Base64EncodeConfig;
 
-pub fn encode_v1(config: &Base64Config, data: &[u8]) -> Vec<u8> {
+pub fn encode_v1(config: &Base64EncodeConfig, data: &[u8]) -> Vec<u8> {
     if data.is_empty() {
         return Vec::new();
     }

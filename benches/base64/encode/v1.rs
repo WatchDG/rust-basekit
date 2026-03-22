@@ -1,8 +1,8 @@
-use basekit::base64::{ALPHABET_BASE64, Base64Config, encode_v1};
+use basekit::base64::{ALPHABET_BASE64, Base64EncodeConfig, encode_v1};
 use criterion::{BenchmarkId, Criterion, black_box};
 
-fn create_config() -> Base64Config {
-    Base64Config::new(ALPHABET_BASE64, b'=')
+fn create_config() -> Base64EncodeConfig {
+    Base64EncodeConfig::new(ALPHABET_BASE64, b'=')
 }
 
 pub fn encode_benchmarks(c: &mut Criterion) {
