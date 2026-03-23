@@ -3,6 +3,7 @@ use core::ptr;
 use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
 
+#[inline(always)]
 pub fn encode_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
