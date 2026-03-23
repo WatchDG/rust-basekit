@@ -1,6 +1,6 @@
 use basekit::base16::{
-    ALPHABET_BASE16_LOWERCASE, Base16DecodeConfig, Base16EncodeConfig, DECODE_TABLE_BASE16_LOWERCASE,
-    decode_into, encode,
+    ALPHABET_BASE16_LOWERCASE, Base16DecodeConfig, Base16EncodeConfig,
+    DECODE_TABLE_BASE16_LOWERCASE, decode_into, encode,
 };
 use criterion::{BenchmarkId, Criterion, black_box};
 

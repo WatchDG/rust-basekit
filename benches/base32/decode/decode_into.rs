@@ -42,7 +42,8 @@ pub fn decode_into_benchmarks(c: &mut Criterion) {
         let data = b"KR3DIFZRNZRW63JRNZSGIYGE2DAMRXM4ZA======";
         let mut dst = vec![0u8; data.len()];
         b.iter(|| {
-            let len = decode_into(black_box(&config), black_box(&mut dst), black_box(data)).unwrap();
+            let len =
+                decode_into(black_box(&config), black_box(&mut dst), black_box(data)).unwrap();
             black_box(len);
         });
     });
