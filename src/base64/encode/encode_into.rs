@@ -3,7 +3,11 @@ use core::ptr;
 use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
 
+#[cfg(feature = "simd-sse3")]
+use super::simd::sse3::encode_full_groups_into_sse3;
+
 #[inline(always)]
+#[allow(unsafe_op_in_unsafe_fn)]
 unsafe fn encode_full_groups_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
@@ -12,11 +16,23 @@ unsafe fn encode_full_groups_into(
     let alphabet_ptr = config.alphabet.as_ptr();
     let mut offset = 0usize;
 
-    for chunk in src.chunks_exact(3) {
-        let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
-        let ptr = unsafe { dst.as_mut_ptr().add(offset) };
+    #[cfg(feature = "simd-sse3")]
+    {
+        let sse3_groups = src.len() / 48;
+        let sse3_bytes = sse3_groups * 48;
 
-        unsafe {
+        if sse3_bytes > 0 {
+            offset += encode_full_groups_into_sse3(
+                config,
+                &mut dst[..sse3_groups * 64],
+                &src[..sse3_bytes],
+            )?;
+        }
+
+        for chunk in src[sse3_bytes..].chunks_exact(3) {
+            let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
+            let ptr = dst.as_mut_ptr().add(offset);
+
             ptr.write(ptr::read_unaligned(
                 alphabet_ptr.add((triple >> 18 & 0x3F) as usize),
             ));
@@ -29,15 +45,39 @@ unsafe fn encode_full_groups_into(
             ptr.offset(3).write(ptr::read_unaligned(
                 alphabet_ptr.add((triple & 0x3F) as usize),
             ));
-        }
 
-        offset += 4;
+            offset += 4;
+        }
+    }
+
+    #[cfg(not(feature = "simd-sse3"))]
+    {
+        for chunk in src.chunks_exact(3) {
+            let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
+            let ptr = dst.as_mut_ptr().add(offset);
+
+            ptr.write(ptr::read_unaligned(
+                alphabet_ptr.add((triple >> 18 & 0x3F) as usize),
+            ));
+            ptr.offset(1).write(ptr::read_unaligned(
+                alphabet_ptr.add((triple >> 12 & 0x3F) as usize),
+            ));
+            ptr.offset(2).write(ptr::read_unaligned(
+                alphabet_ptr.add((triple >> 6 & 0x3F) as usize),
+            ));
+            ptr.offset(3).write(ptr::read_unaligned(
+                alphabet_ptr.add((triple & 0x3F) as usize),
+            ));
+
+            offset += 4;
+        }
     }
 
     Ok(offset)
 }
 
 #[inline(always)]
+#[allow(unsafe_op_in_unsafe_fn)]
 unsafe fn encode_tail_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
@@ -53,13 +93,11 @@ unsafe fn encode_tail_into(
             let c1 = ((triple >> 12) & 0x3F) as usize;
             let ptr = dst.as_mut_ptr();
 
-            unsafe {
-                ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
-                ptr.offset(1)
-                    .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
-                ptr.offset(2).write(padding);
-                ptr.offset(3).write(padding);
-            }
+            ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
+            ptr.offset(1)
+                .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
+            ptr.offset(2).write(padding);
+            ptr.offset(3).write(padding);
             Ok(4)
         }
         2 => {
@@ -69,14 +107,12 @@ unsafe fn encode_tail_into(
             let c2 = ((triple >> 6) & 0x3F) as usize;
             let ptr = dst.as_mut_ptr();
 
-            unsafe {
-                ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
-                ptr.offset(1)
-                    .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
-                ptr.offset(2)
-                    .write(ptr::read_unaligned(alphabet_ptr.add(c2)));
-                ptr.offset(3).write(padding);
-            }
+            ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
+            ptr.offset(1)
+                .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
+            ptr.offset(2)
+                .write(ptr::read_unaligned(alphabet_ptr.add(c2)));
+            ptr.offset(3).write(padding);
             Ok(4)
         }
         0 => Ok(0),

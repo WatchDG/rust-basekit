@@ -11,6 +11,9 @@ readme = "README.md"
 edition = "2024"
 exclude = [".trae/**", "benches/**", "tests/**"]
 
+[features]
+simd-sse3 = []
+
 [dependencies]
 
 [dev-dependencies]

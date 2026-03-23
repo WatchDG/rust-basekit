@@ -11,7 +11,7 @@ pub fn decode_into(
         return Ok(0);
     }
 
-    if src.len() % 2 != 0 {
+    if !src.len().is_multiple_of(2) {
         return Err(Base16Error::InvalidLength(src.len()));
     }
 

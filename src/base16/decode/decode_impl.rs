@@ -7,7 +7,7 @@ pub fn decode(config: &Base16DecodeConfig, data: &[u8]) -> Result<Vec<u8>, Base1
         return Ok(Vec::new());
     }
 
-    if data.len() % 2 != 0 {
+    if !data.len().is_multiple_of(2) {
         return Err(Base16Error::InvalidLength(data.len()));
     }
 
