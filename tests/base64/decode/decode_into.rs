@@ -151,19 +151,31 @@ fn test_invalid_character_position_4_5_6_7() {
 
     let mut dst = vec![0u8; 100];
     let result = decode_into(&config, &mut dst, b"Zm9v!g==");
-    assert!(matches!(result, Err(Base64Error::InvalidCharacter(b'!', 4))));
+    assert!(matches!(
+        result,
+        Err(Base64Error::InvalidCharacter(b'!', 4))
+    ));
 
     let mut dst = vec![0u8; 100];
     let result = decode_into(&config, &mut dst, b"Zm9vY!==");
-    assert!(matches!(result, Err(Base64Error::InvalidCharacter(b'!', 5))));
+    assert!(matches!(
+        result,
+        Err(Base64Error::InvalidCharacter(b'!', 5))
+    ));
 
     let mut dst = vec![0u8; 100];
     let result = decode_into(&config, &mut dst, b"Zm9vYg!=");
-    assert!(matches!(result, Err(Base64Error::InvalidCharacter(b'!', 6))));
+    assert!(matches!(
+        result,
+        Err(Base64Error::InvalidCharacter(b'!', 6))
+    ));
 
     let mut dst = vec![0u8; 100];
     let result = decode_into(&config, &mut dst, b"Zm9vYg!!");
-    assert!(matches!(result, Err(Base64Error::InvalidCharacter(b'!', 6))));
+    assert!(matches!(
+        result,
+        Err(Base64Error::InvalidCharacter(b'!', 6))
+    ));
 }
 
 #[test]
@@ -172,15 +184,24 @@ fn test_invalid_high_byte_at_positions() {
 
     let mut dst = vec![0u8; 100];
     let result = decode_into(&config, &mut dst, b"Z\xFFvYg==");
-    assert!(matches!(result, Err(Base64Error::InvalidCharacter(0xFF, 1))));
+    assert!(matches!(
+        result,
+        Err(Base64Error::InvalidCharacter(0xFF, 1))
+    ));
 
     let mut dst = vec![0u8; 100];
     let result = decode_into(&config, &mut dst, b"Zm9v\xFFg==");
-    assert!(matches!(result, Err(Base64Error::InvalidCharacter(0xFF, 4))));
+    assert!(matches!(
+        result,
+        Err(Base64Error::InvalidCharacter(0xFF, 4))
+    ));
 
     let mut dst = vec![0u8; 100];
     let result = decode_into(&config, &mut dst, b"Zm9vY\xFF==");
-    assert!(matches!(result, Err(Base64Error::InvalidCharacter(0xFF, 5))));
+    assert!(matches!(
+        result,
+        Err(Base64Error::InvalidCharacter(0xFF, 5))
+    ));
 }
 
 #[test]
@@ -201,8 +222,12 @@ fn test_invalid_character_whole_buffer_positions() {
     for (data, expected_pos) in test_cases {
         let mut dst = vec![0u8; 100];
         let result = decode_into(&config, &mut dst, data);
-        assert!(matches!(result, Err(Base64Error::InvalidCharacter(b'!', p)) if p == expected_pos),
-            "Failed for data {:?} at position {}", data, expected_pos);
+        assert!(
+            matches!(result, Err(Base64Error::InvalidCharacter(b'!', p)) if p == expected_pos),
+            "Failed for data {:?} at position {}",
+            data,
+            expected_pos
+        );
     }
 }
 

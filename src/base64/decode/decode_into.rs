@@ -157,7 +157,7 @@ pub fn decode_into(
     }
 
     let mut padding_count = 0;
-    for &byte in src.iter().rev() {
+    for &byte in src.iter().rev().take(3) {
         if byte == config.padding {
             padding_count += 1;
         } else {
