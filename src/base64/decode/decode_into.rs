@@ -1,6 +1,152 @@
 use super::super::config::Base64DecodeConfig;
 use super::super::error::Base64Error;
 
+unsafe fn decode_full_groups_into(
+    config: &Base64DecodeConfig,
+    dst: &mut [u8],
+    src: &[u8],
+    full_groups: usize,
+) -> Result<usize, Base64Error> {
+    if full_groups == 0 {
+        return Ok(0);
+    }
+
+    let decode_table = config.decode_table;
+    let mut dst_offset = 0usize;
+
+    for group_idx in 0..full_groups {
+        let chunk_start = group_idx * 4;
+        let chunk = &src[chunk_start..chunk_start + 4];
+
+        let b0 = chunk[0];
+        let b1 = chunk[1];
+        let b2 = chunk[2];
+        let b3 = chunk[3];
+
+        if b0 == config.padding {
+            return Err(Base64Error::InvalidPadding);
+        }
+        if b1 == config.padding {
+            return Err(Base64Error::InvalidPadding);
+        }
+        if b2 == config.padding {
+            return Err(Base64Error::InvalidPadding);
+        }
+        if b3 == config.padding {
+            return Err(Base64Error::InvalidPadding);
+        }
+
+        if b0 >= 128 {
+            return Err(Base64Error::InvalidCharacter(b0, chunk_start));
+        }
+        if b1 >= 128 {
+            return Err(Base64Error::InvalidCharacter(b1, chunk_start + 1));
+        }
+        if b2 >= 128 {
+            return Err(Base64Error::InvalidCharacter(b2, chunk_start + 2));
+        }
+        if b3 >= 128 {
+            return Err(Base64Error::InvalidCharacter(b3, chunk_start + 3));
+        }
+
+        let i0 = decode_table[b0 as usize];
+        let i1 = decode_table[b1 as usize];
+        let i2 = decode_table[b2 as usize];
+        let i3 = decode_table[b3 as usize];
+
+        if i0 < 0 || i1 < 0 || i2 < 0 || i3 < 0 {
+            let pos = if i0 < 0 {
+                0
+            } else if i1 < 0 {
+                1
+            } else if i2 < 0 {
+                2
+            } else {
+                3
+            };
+            let byte = chunk[pos];
+            return Err(Base64Error::InvalidCharacter(byte, chunk_start + pos));
+        }
+
+        let triple = ((i0 as u32) << 18) | ((i1 as u32) << 12) | ((i2 as u32) << 6) | (i3 as u32);
+
+        unsafe {
+            let ptr = dst.as_mut_ptr().add(dst_offset);
+            ptr.write((triple >> 16) as u8);
+            ptr.offset(1).write((triple >> 8) as u8);
+            ptr.offset(2).write(triple as u8);
+        }
+
+        dst_offset += 3;
+    }
+
+    Ok(dst_offset)
+}
+
+unsafe fn decode_tail_into(
+    config: &Base64DecodeConfig,
+    chunk: &[u8],
+    chunk_start: usize,
+    padding_count: usize,
+    dst: &mut [u8],
+    dst_offset: usize,
+) -> Result<usize, Base64Error> {
+    let decode_table = config.decode_table;
+    let mut indices: [i8; 4] = [0; 4];
+    for (j, &byte) in chunk.iter().enumerate() {
+        let pos = chunk_start + j;
+
+        if byte == config.padding {
+            let expected_min_pos = 4 - padding_count;
+            if j < expected_min_pos {
+                return Err(Base64Error::InvalidPadding);
+            }
+            indices[j] = 0;
+        } else {
+            if byte >= 128 {
+                return Err(Base64Error::InvalidCharacter(byte, pos));
+            }
+            let val = decode_table[byte as usize];
+            if val < 0 {
+                return Err(Base64Error::InvalidCharacter(byte, pos));
+            }
+            indices[j] = val;
+        }
+    }
+
+    let triple = ((indices[0] as u32) << 18)
+        | ((indices[1] as u32) << 12)
+        | ((indices[2] as u32) << 6)
+        | (indices[3] as u32);
+
+    let bytes_written = match padding_count {
+        2 => 1,
+        1 => 2,
+        _ => 3,
+    };
+
+    unsafe {
+        let ptr = dst.as_mut_ptr().add(dst_offset);
+
+        match padding_count {
+            2 => {
+                ptr.write((triple >> 16) as u8);
+            }
+            1 => {
+                ptr.write((triple >> 16) as u8);
+                ptr.offset(1).write((triple >> 8) as u8);
+            }
+            _ => {
+                ptr.write((triple >> 16) as u8);
+                ptr.offset(1).write((triple >> 8) as u8);
+                ptr.offset(2).write(triple as u8);
+            }
+        }
+    }
+
+    Ok(bytes_written)
+}
+
 pub fn decode_into(
     config: &Base64DecodeConfig,
     dst: &mut [u8],
@@ -38,69 +184,18 @@ pub fn decode_into(
     }
 
     let total_groups = src.len().div_ceil(4);
-    let decode_table = config.decode_table;
+    let full_groups = clean_len / 4;
+    let has_tail = total_groups > full_groups;
 
     unsafe {
         let mut dst_offset = 0usize;
 
-        for group_idx in 0..total_groups {
-            let i = group_idx * 4;
+        dst_offset += decode_full_groups_into(config, dst, src, full_groups)?;
+
+        if has_tail {
+            let i = full_groups * 4;
             let chunk = &src[i..core::cmp::min(i + 4, src.len())];
-
-            let mut indices: [i8; 4] = [0; 4];
-            for (j, &byte) in chunk.iter().enumerate() {
-                let pos = i + j;
-
-                if byte == config.padding {
-                    if pos < clean_len {
-                        return Err(Base64Error::InvalidPadding);
-                    }
-                    indices[j] = 0;
-                } else {
-                    if byte >= 128 {
-                        return Err(Base64Error::InvalidCharacter(byte, pos));
-                    }
-                    let val = decode_table[byte as usize];
-                    if val < 0 {
-                        return Err(Base64Error::InvalidCharacter(byte, pos));
-                    }
-                    indices[j] = val;
-                }
-            }
-
-            let i0 = indices[0] as u32;
-            let i1 = indices[1] as u32;
-            let i2 = indices[2] as u32;
-            let i3 = indices[3] as u32;
-
-            let triple = (i0 << 18) | (i1 << 12) | (i2 << 6) | i3;
-
-            let is_last_group = group_idx == total_groups - 1;
-
-            let bytes_to_add = if is_last_group {
-                match padding_count {
-                    2 => 1,
-                    1 => 2,
-                    _ => 3,
-                }
-            } else {
-                3
-            };
-
-            let ptr = dst.as_mut_ptr().add(dst_offset);
-
-            if bytes_to_add >= 1 {
-                ptr.write((triple >> 16) as u8);
-                dst_offset += 1;
-            }
-            if bytes_to_add >= 2 {
-                ptr.offset(1).write((triple >> 8) as u8);
-                dst_offset += 1;
-            }
-            if bytes_to_add >= 3 {
-                ptr.offset(2).write(triple as u8);
-                dst_offset += 1;
-            }
+            dst_offset += decode_tail_into(config, chunk, i, padding_count, dst, dst_offset)?;
         }
 
         Ok(dst_offset)
