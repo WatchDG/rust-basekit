@@ -1,6 +1,7 @@
 use super::super::config::Base64DecodeConfig;
 use super::super::error::Base64Error;
 
+#[inline(always)]
 unsafe fn decode_full_groups_into(
     config: &Base64DecodeConfig,
     dst: &mut [u8],
@@ -84,6 +85,7 @@ unsafe fn decode_full_groups_into(
     Ok(dst_offset)
 }
 
+#[inline(always)]
 unsafe fn decode_tail_into(
     config: &Base64DecodeConfig,
     chunk: &[u8],
@@ -148,6 +150,7 @@ unsafe fn decode_tail_into(
     Ok(bytes_written)
 }
 
+#[inline(always)]
 pub fn decode_into(
     config: &Base64DecodeConfig,
     dst: &mut [u8],
