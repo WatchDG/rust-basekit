@@ -36,17 +36,18 @@ unsafe fn decode_full_groups_into(
             return Err(Base64Error::InvalidPadding);
         }
 
-        if b0 >= 128 {
-            return Err(Base64Error::InvalidCharacter(b0, chunk_start));
-        }
-        if b1 >= 128 {
-            return Err(Base64Error::InvalidCharacter(b1, chunk_start + 1));
-        }
-        if b2 >= 128 {
-            return Err(Base64Error::InvalidCharacter(b2, chunk_start + 2));
-        }
-        if b3 >= 128 {
-            return Err(Base64Error::InvalidCharacter(b3, chunk_start + 3));
+        let invalid_high_bit = (b0 | b1 | b2 | b3) & 0x80;
+        if invalid_high_bit != 0 {
+            let pos = if b0 & 0x80 != 0 {
+                0
+            } else if b1 & 0x80 != 0 {
+                1
+            } else if b2 & 0x80 != 0 {
+                2
+            } else {
+                3
+            };
+            return Err(Base64Error::InvalidCharacter(chunk[pos], chunk_start + pos));
         }
 
         let i0 = decode_table[b0 as usize];
