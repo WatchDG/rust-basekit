@@ -14,66 +14,48 @@ unsafe fn encode_full_groups_into(
     src: &[u8],
 ) -> Result<usize, Base64Error> {
     let alphabet_ptr = config.alphabet.as_ptr();
-    let mut offset = 0usize;
+    let mut dst_offset = 0usize;
+    #[cfg(feature = "simd-ssse3")]
+    let mut src_offset = 0usize;
+    #[cfg(not(feature = "simd-ssse3"))]
+    let src_offset = 0usize;
 
     #[cfg(feature = "simd-ssse3")]
     {
-        let sse3_groups = src.len() / 12;
+        let sse3_groups = if src.len() >= 12 { (src.len() - 12) / 12 + 1 } else { 0 };
         let sse3_bytes = sse3_groups * 12;
 
         if sse3_bytes > 0 {
-            offset += encode_full_groups_into_sse3(
+            dst_offset += encode_full_groups_into_sse3(
                 config,
                 &mut dst[..sse3_groups * 16],
                 &src[..sse3_bytes],
             )?;
-        }
-
-        for chunk in src[sse3_bytes..].chunks_exact(3) {
-            let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
-            let ptr = dst.as_mut_ptr().add(offset);
-
-            ptr.write(ptr::read_unaligned(
-                alphabet_ptr.add((triple >> 18 & 0x3F) as usize),
-            ));
-            ptr.offset(1).write(ptr::read_unaligned(
-                alphabet_ptr.add((triple >> 12 & 0x3F) as usize),
-            ));
-            ptr.offset(2).write(ptr::read_unaligned(
-                alphabet_ptr.add((triple >> 6 & 0x3F) as usize),
-            ));
-            ptr.offset(3).write(ptr::read_unaligned(
-                alphabet_ptr.add((triple & 0x3F) as usize),
-            ));
-
-            offset += 4;
+            src_offset = sse3_bytes;
         }
     }
 
-    #[cfg(not(feature = "simd-ssse3"))]
-    {
-        for chunk in src.chunks_exact(3) {
-            let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
-            let ptr = dst.as_mut_ptr().add(offset);
+    for chunk in src[src_offset..].chunks_exact(3) {
+        let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
+        let ptr = dst.as_mut_ptr().add(dst_offset);
 
-            ptr.write(ptr::read_unaligned(
-                alphabet_ptr.add((triple >> 18 & 0x3F) as usize),
-            ));
-            ptr.offset(1).write(ptr::read_unaligned(
-                alphabet_ptr.add((triple >> 12 & 0x3F) as usize),
-            ));
-            ptr.offset(2).write(ptr::read_unaligned(
-                alphabet_ptr.add((triple >> 6 & 0x3F) as usize),
-            ));
-            ptr.offset(3).write(ptr::read_unaligned(
-                alphabet_ptr.add((triple & 0x3F) as usize),
-            ));
+        ptr.write(ptr::read_unaligned(
+            alphabet_ptr.add((triple >> 18 & 0x3F) as usize),
+        ));
+        ptr.offset(1).write(ptr::read_unaligned(
+            alphabet_ptr.add((triple >> 12 & 0x3F) as usize),
+        ));
+        ptr.offset(2).write(ptr::read_unaligned(
+            alphabet_ptr.add((triple >> 6 & 0x3F) as usize),
+        ));
+        ptr.offset(3).write(ptr::read_unaligned(
+            alphabet_ptr.add((triple & 0x3F) as usize),
+        ));
 
-            offset += 4;
-        }
+        dst_offset += 4;
     }
 
-    Ok(offset)
+    Ok(dst_offset)
 }
 
 #[inline(always)]
