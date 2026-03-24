@@ -27,25 +27,11 @@ pub(crate) unsafe fn encode_full_groups_into_sse3(
 #[allow(unsafe_op_in_unsafe_fn)]
 unsafe fn encode_sse3_block(src: *const u8, dst: *mut u8) {
     let input0 = _mm_loadu_si128(src as *const __m128i);
-    let input1 = _mm_loadu_si128(src.add(16) as *const __m128i);
-    let input2 = _mm_loadu_si128(src.add(32) as *const __m128i);
 
     let mask = _mm_set1_epi8(0x3F);
 
     let b0 = _mm_and_si128(input0, mask);
     let b1 = _mm_and_si128(_mm_srli_epi16(input0, 2), mask);
-    let _b2 = _mm_and_si128(_mm_srli_epi16(input0, 4), mask);
-    let b3 = _mm_and_si128(_mm_srli_epi16(input0, 6), mask);
-
-    let b4 = _mm_and_si128(input1, mask);
-    let b5 = _mm_and_si128(_mm_srli_epi16(input1, 2), mask);
-    let b6 = _mm_and_si128(_mm_srli_epi16(input1, 4), mask);
-    let b7 = _mm_and_si128(_mm_srli_epi16(input1, 6), mask);
-
-    let b8 = _mm_and_si128(input2, mask);
-    let b9 = _mm_and_si128(_mm_srli_epi16(input2, 2), mask);
-    let b10 = _mm_and_si128(_mm_srli_epi16(input2, 4), mask);
-    let b11 = _mm_and_si128(_mm_srli_epi16(input2, 6), mask);
 
     let shift_mask_lo: __m128i = _mm_set_epi8(
         15i8, 15i8, 15i8, 15i8, 15i8, 15i8, 15i8, 15i8, 14i8, 13i8, 12i8, 11i8, 10i8, 9i8, 8i8, 7i8,
@@ -78,6 +64,4 @@ unsafe fn encode_sse3_block(src: *const u8, dst: *mut u8) {
     _mm_storeu_si128(dst as *mut __m128i, char0);
     _mm_storeu_si128(dst.add(16) as *mut __m128i, char1);
     _mm_storeu_si128(dst.add(32) as *mut __m128i, char2);
-
-    let _ = (b3, b4, b5, b6, b7, b8, b9, b10, b11);
 }
