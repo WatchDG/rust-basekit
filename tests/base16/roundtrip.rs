@@ -1,6 +1,6 @@
 use basekit::base16::{
-    ALPHABET_BASE16_UPPERCASE, Base16DecodeConfig, Base16EncodeConfig, decode, decode_into, encode,
-    encode_into, DECODE_TABLE_BASE16_UPPERCASE,
+    ALPHABET_BASE16_UPPERCASE, Base16DecodeConfig, Base16EncodeConfig,
+    DECODE_TABLE_BASE16_UPPERCASE, decode, decode_into, encode, encode_into,
 };
 
 fn create_encode_config() -> Base16EncodeConfig {
@@ -31,8 +31,12 @@ fn roundtrip_into(original: &[u8]) {
 
     let decoded_len = actual_encoded_len / 2;
     let mut decoded_dst = vec![0u8; decoded_len];
-    let actual_decoded_len =
-        decode_into(&dec_config, &mut decoded_dst, &encoded_dst[..actual_encoded_len]).unwrap();
+    let actual_decoded_len = decode_into(
+        &dec_config,
+        &mut decoded_dst,
+        &encoded_dst[..actual_encoded_len],
+    )
+    .unwrap();
 
     assert_eq!(
         &decoded_dst[..actual_decoded_len],
@@ -155,7 +159,9 @@ fn test_roundtrip_all_ones() {
 fn test_roundtrip_alternating_pattern() {
     let sizes = [1, 2, 3, 4, 5, 10, 50, 100, 255, 256];
     for size in sizes {
-        let data: Vec<u8> = (0..size).map(|i| if i % 2 == 0 { 0xAA } else { 0x55 }).collect();
+        let data: Vec<u8> = (0..size)
+            .map(|i| if i % 2 == 0 { 0xAA } else { 0x55 })
+            .collect();
         roundtrip(&data);
         roundtrip_into(&data);
     }

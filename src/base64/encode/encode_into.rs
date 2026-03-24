@@ -4,7 +4,7 @@ use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
 
 #[cfg(feature = "simd-ssse3")]
-use super::simd::sse3::encode_full_groups_into_sse3;
+use super::simd::ssse3::encode_full_groups_into_ssse3;
 
 #[inline(always)]
 #[allow(unsafe_op_in_unsafe_fn)]
@@ -22,11 +22,15 @@ unsafe fn encode_full_groups_into(
 
     #[cfg(feature = "simd-ssse3")]
     {
-        let sse3_groups = if src.len() >= 12 { (src.len() - 12) / 12 + 1 } else { 0 };
+        let sse3_groups = if src.len() >= 12 {
+            (src.len() - 12) / 12 + 1
+        } else {
+            0
+        };
         let sse3_bytes = sse3_groups * 12;
 
         if sse3_bytes > 0 {
-            dst_offset += encode_full_groups_into_sse3(
+            dst_offset += encode_full_groups_into_ssse3(
                 config,
                 &mut dst[..sse3_groups * 16],
                 &src[..sse3_bytes],

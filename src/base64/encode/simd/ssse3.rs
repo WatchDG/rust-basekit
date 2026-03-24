@@ -6,8 +6,9 @@ use crate::base64::error::Base64Error;
 /// Encodes full 12-byte groups (src.len() is guaranteed to be a multiple of 12).
 /// Each 12 bytes → 16 base64 characters. Tail/padding is handled by the caller.
 #[target_feature(enable = "ssse3")]
+#[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
-pub(crate) unsafe fn encode_full_groups_into_sse3(
+pub(crate) unsafe fn encode_full_groups_into_ssse3(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
@@ -20,7 +21,7 @@ pub(crate) unsafe fn encode_full_groups_into_sse3(
         let src_ptr = src.as_ptr().add(src_offset);
         let dst_ptr = dst.as_mut_ptr().add(dst_offset);
 
-        encode_sse3_block(src_ptr, dst_ptr, alphabet_ptr);
+        encode_ssse3_block(src_ptr, dst_ptr, alphabet_ptr);
 
         src_offset += 12;
         dst_offset += 16;
@@ -46,7 +47,7 @@ pub(crate) unsafe fn encode_full_groups_into_sse3(
 #[target_feature(enable = "ssse3")]
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
-unsafe fn encode_sse3_block(src: *const u8, dst: *mut u8, alphabet: *const u8) {
+unsafe fn encode_ssse3_block(src: *const u8, dst: *mut u8, alphabet: *const u8) {
     // Load 16 bytes (first 12 are the 4 input triples, last 4 are not used)
     let input = _mm_loadu_si128(src as *const __m128i);
 
@@ -77,8 +78,14 @@ unsafe fn encode_sse3_block(src: *const u8, dst: *mut u8, alphabet: *const u8) {
     let mask0 = _mm_set1_epi32(0x0FC0FC00u32 as i32);
     let mask1 = _mm_set1_epi32(0x003F03F0u32 as i32);
 
-    let t0 = _mm_mulhi_epu16(_mm_and_si128(shuffled, mask0), _mm_set1_epi32(0x04000040u32 as i32));
-    let t1 = _mm_mullo_epi16(_mm_and_si128(shuffled, mask1), _mm_set1_epi32(0x01000010u32 as i32));
+    let t0 = _mm_mulhi_epu16(
+        _mm_and_si128(shuffled, mask0),
+        _mm_set1_epi32(0x04000040u32 as i32),
+    );
+    let t1 = _mm_mullo_epi16(
+        _mm_and_si128(shuffled, mask1),
+        _mm_set1_epi32(0x01000010u32 as i32),
+    );
 
     // indices[i] ∈ [0, 63] for each byte i
     let indices = _mm_or_si128(t0, t1);

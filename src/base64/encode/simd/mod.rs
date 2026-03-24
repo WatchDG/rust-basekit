@@ -1,1 +1,1 @@
-pub mod sse3;
+pub mod ssse3;
