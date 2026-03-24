@@ -13,6 +13,7 @@ exclude = [".trae/**", "benches/**", "tests/**"]
 
 [features]
 simd-ssse3 = []
+simd-avx2  = []
 
 [dependencies]
 
