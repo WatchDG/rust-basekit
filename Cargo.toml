@@ -12,7 +12,7 @@ edition = "2024"
 exclude = [".trae/**", "benches/**", "tests/**"]
 
 [features]
-simd-sse3 = []
+simd-ssse3 = []
 
 [dependencies]
 

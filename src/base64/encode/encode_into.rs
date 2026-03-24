@@ -3,7 +3,7 @@ use core::ptr;
 use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
 
-#[cfg(feature = "simd-sse3")]
+#[cfg(feature = "simd-ssse3")]
 use super::simd::sse3::encode_full_groups_into_sse3;
 
 #[inline(always)]
@@ -16,7 +16,7 @@ unsafe fn encode_full_groups_into(
     let alphabet_ptr = config.alphabet.as_ptr();
     let mut offset = 0usize;
 
-    #[cfg(feature = "simd-sse3")]
+    #[cfg(feature = "simd-ssse3")]
     {
         let sse3_groups = src.len() / 12;
         let sse3_bytes = sse3_groups * 12;
@@ -50,7 +50,7 @@ unsafe fn encode_full_groups_into(
         }
     }
 
-    #[cfg(not(feature = "simd-sse3"))]
+    #[cfg(not(feature = "simd-ssse3"))]
     {
         for chunk in src.chunks_exact(3) {
             let triple = ((chunk[0] as u32) << 16) | ((chunk[1] as u32) << 8) | (chunk[2] as u32);
