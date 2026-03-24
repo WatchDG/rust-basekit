@@ -1,7 +1,7 @@
 pub mod encode_impl;
 pub mod encode_into;
 
-#[cfg(any(feature = "simd-ssse3", feature = "simd-avx2"))]
+#[cfg(any(feature = "simd-ssse3", feature = "simd-avx2", feature = "simd-avx512"))]
 pub mod simd;
 
 pub use encode_impl::encode;

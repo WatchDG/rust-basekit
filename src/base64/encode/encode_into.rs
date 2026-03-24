@@ -5,6 +5,8 @@ use super::super::error::Base64Error;
 
 #[cfg(feature = "simd-avx2")]
 use super::simd::avx2::encode_full_groups_into_avx2;
+#[cfg(feature = "simd-avx512")]
+use super::simd::avx512::encode_full_groups_into_avx512;
 #[cfg(feature = "simd-ssse3")]
 use super::simd::ssse3::encode_full_groups_into_ssse3;
 
@@ -18,30 +20,58 @@ unsafe fn encode_full_groups_into(
     let alphabet_ptr = config.alphabet.as_ptr();
     let mut dst_offset = 0usize;
 
-    #[cfg(any(feature = "simd-avx2", feature = "simd-ssse3"))]
+    #[cfg(any(feature = "simd-avx512", feature = "simd-avx2", feature = "simd-ssse3"))]
     let mut src_offset = 0usize;
-    #[cfg(not(any(feature = "simd-avx2", feature = "simd-ssse3")))]
+    #[cfg(not(any(feature = "simd-avx512", feature = "simd-avx2", feature = "simd-ssse3")))]
     let src_offset = 0usize;
+
+    #[cfg(feature = "simd-avx512")]
+    {
+        let avx512_groups = if src.len() >= 96 {
+            (src.len() - 48) / 48
+        } else {
+            0
+        };
+        let avx512_bytes = avx512_groups * 48;
+
+        if avx512_bytes > 0 {
+            dst_offset += encode_full_groups_into_avx512(
+                config,
+                &mut dst[..avx512_groups * 64],
+                &src[..avx512_bytes],
+            )?;
+            src_offset = avx512_bytes;
+        }
+    }
 
     #[cfg(feature = "simd-avx2")]
     {
-        let avx2_groups = if src.len() >= 48 { (src.len() - 24) / 24 } else { 0 };
+        let remaining = &src[src_offset..];
+        let avx2_groups = if remaining.len() >= 48 {
+            (remaining.len() - 24) / 24
+        } else {
+            0
+        };
         let avx2_bytes = avx2_groups * 24;
 
         if avx2_bytes > 0 {
             dst_offset += encode_full_groups_into_avx2(
                 config,
-                &mut dst[..avx2_groups * 32],
-                &src[..avx2_bytes],
+                &mut dst[dst_offset..dst_offset + avx2_groups * 32],
+                &remaining[..avx2_bytes],
             )?;
-            src_offset = avx2_bytes;
+            src_offset += avx2_bytes;
         }
     }
 
     #[cfg(feature = "simd-ssse3")]
     {
         let remaining = &src[src_offset..];
-        let ssse3_groups = if remaining.len() >= 24 { remaining.len() / 12 - 1 } else { 0 };
+        let ssse3_groups = if remaining.len() >= 24 {
+            remaining.len() / 12 - 1
+        } else {
+            0
+        };
         let ssse3_bytes = ssse3_groups * 12;
 
         if ssse3_bytes > 0 {
