@@ -3,65 +3,116 @@ use core::arch::x86_64::*;
 use crate::base64::config::Base64EncodeConfig;
 use crate::base64::error::Base64Error;
 
-#[inline(always)]
+/// Encodes full 48-byte groups (src.len() is guaranteed to be a multiple of 48).
+/// Each 48 bytes → 64 base64 characters. Tail/padding is handled by the caller.
+#[target_feature(enable = "ssse3")]
 #[allow(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn encode_full_groups_into_sse3(
-    _config: &Base64EncodeConfig,
+    config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
 ) -> Result<usize, Base64Error> {
-    let mut offset = 0usize;
+    let alphabet_ptr = config.alphabet.as_ptr();
+    let mut src_offset = 0usize;
+    let mut dst_offset = 0usize;
 
-    for chunk in src.chunks_exact(48) {
-        let dst_ptr = dst.as_mut_ptr().add(offset);
+    while src_offset + 48 <= src.len() {
+        let src_ptr = src.as_ptr().add(src_offset);
+        let dst_ptr = dst.as_mut_ptr().add(dst_offset);
 
-        encode_sse3_block(chunk.as_ptr(), dst_ptr);
+        // 4 × (12 src bytes → 16 dst bytes) = 48 → 64
+        encode_sse3_block(src_ptr,         dst_ptr,         alphabet_ptr);
+        encode_sse3_block(src_ptr.add(12), dst_ptr.add(16), alphabet_ptr);
+        encode_sse3_block(src_ptr.add(24), dst_ptr.add(32), alphabet_ptr);
+        encode_sse3_block(src_ptr.add(36), dst_ptr.add(48), alphabet_ptr);
 
-        offset += 64;
+        src_offset += 48;
+        dst_offset += 64;
     }
 
-    Ok(offset)
+    Ok(dst_offset)
 }
 
-#[inline(always)]
+/// Encodes 12 src bytes into 16 base64 characters using the provided alphabet.
+///
+/// The 12 bytes form 4 complete triples; there is no padding.
+/// Reads up to 16 bytes from `src` (last 4 are ignored), writes exactly 16 bytes to `dst`.
+///
+/// Algorithm (Muła, SSSE3):
+///
+/// 1. Reshuffle: for each triple (a, b, c) → [b, a, c, b] as a 32-bit LE word.
+/// 2. Extract 6-bit indices via masked multiply:
+///      idx0 = (a >> 2) & 0x3F
+///      idx1 = ((a & 0x03) << 4) | (b >> 4)
+///      idx2 = ((b & 0x0F) << 2) | (c >> 6)
+///      idx3 = c & 0x3F
+/// 3. Map each index to the alphabet character with 4×pshufb (covers all 64 chars).
+#[target_feature(enable = "ssse3")]
+#[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
-unsafe fn encode_sse3_block(src: *const u8, dst: *mut u8) {
-    let input0 = _mm_loadu_si128(src as *const __m128i);
+unsafe fn encode_sse3_block(src: *const u8, dst: *mut u8, alphabet: *const u8) {
+    // Load 16 bytes (first 12 are the 4 input triples, last 4 are not used)
+    let input = _mm_loadu_si128(src as *const __m128i);
 
-    let mask = _mm_set1_epi8(0x3F);
-
-    let b0 = _mm_and_si128(input0, mask);
-    let b1 = _mm_and_si128(_mm_srli_epi16(input0, 2), mask);
-
-    let shift_mask_lo: __m128i = _mm_set_epi8(
-        15i8, 15i8, 15i8, 15i8, 15i8, 15i8, 15i8, 15i8, 14i8, 13i8, 12i8, 11i8, 10i8, 9i8, 8i8, 7i8,
-    );
-    let shift_mask_hi: __m128i = _mm_set_epi8(
-        6i8, 5i8, 4i8, 3i8, 2i8, 1i8, 0i8, -128i8, -128i8, -128i8, -128i8, -128i8, -128i8, -128i8,
-        -128i8, -128i8,
-    );
-
-    let lo_shifted = _mm_shuffle_epi8(input0, shift_mask_lo);
-    let hi_shifted = _mm_shuffle_epi8(input0, shift_mask_hi);
-
-    let idx0 = _mm_or_si128(_mm_and_si128(lo_shifted, _mm_set1_epi8(0xC0u8 as i8)), b0);
-    let idx1 = _mm_or_si128(_mm_and_si128(hi_shifted, _mm_set1_epi8(0x30u8 as i8)), b1);
-    let idx2 = _mm_or_si128(lo_shifted, _mm_set1_epi8(0xC0u8 as i8));
-
-    let alphabet_lo: __m128i = _mm_set_epi8(
-        63i8, 62i8, 61i8, 60i8, 59i8, 58i8, 57i8, 56i8, 55i8, 54i8, 53i8, 52i8, 51i8, 50i8, 49i8,
-        48i8,
-    );
-    let alphabet_hi: __m128i = _mm_set_epi8(
-        47i8, 46i8, 45i8, 44i8, 43i8, 42i8, 41i8, 40i8, 39i8, 38i8, 37i8, 36i8, 35i8, 34i8, 33i8,
-        32i8,
+    // Step 1 — Reshuffle.
+    //
+    // Input:    [ a0  b0  c0 | a1  b1  c1 | a2  b2  c2 | a3  b3  c3  ?  ?  ?  ? ]
+    // Shuffled: [ b0  a0  c0  b0 | b1  a1  c1  b1 | b2  a2  c2  b2 | b3  a3  c3  b3 ]
+    //
+    // _mm_set_epi8 arguments: (e15, e14, ..., e1, e0) where eN is byte N.
+    let shuffled = _mm_shuffle_epi8(
+        input,
+        _mm_set_epi8(10, 11, 9, 10, 7, 8, 6, 7, 4, 5, 3, 4, 1, 2, 0, 1),
     );
 
-    let char0 = _mm_shuffle_epi8(alphabet_lo, idx0);
-    let char1 = _mm_shuffle_epi8(alphabet_hi, idx1);
-    let char2 = _mm_shuffle_epi8(alphabet_lo, idx2);
+    // Step 2 — Extract 6-bit indices.
+    //
+    // Each 32-bit LE word is [b, a, c, b].  Two 16-bit views:
+    //   lower word = b | (a << 8)
+    //   upper word = c | (b << 8)
+    //
+    // mask0 picks the bits needed by mulhi:
+    //   lower & 0xFC00 = (a & 0xFC) << 8  →  mulhi ×0x0040 → idx0 = a >> 2
+    //   upper & 0x0FC0 = (b & 0x0F) << 8 | (c & 0xC0)  →  mulhi ×0x0400 → idx2
+    //
+    // mask1 picks the bits needed by mullo:
+    //   lower & 0x03F0 = (a & 0x03) << 8 | (b & 0xF0)  →  mullo ×0x0010 → idx1 (high byte)
+    //   upper & 0x003F = c & 0x3F                        →  mullo ×0x0100 → idx3 (high byte)
+    let mask0 = _mm_set1_epi32(0x0FC0FC00u32 as i32);
+    let mask1 = _mm_set1_epi32(0x003F03F0u32 as i32);
 
-    _mm_storeu_si128(dst as *mut __m128i, char0);
-    _mm_storeu_si128(dst.add(16) as *mut __m128i, char1);
-    _mm_storeu_si128(dst.add(32) as *mut __m128i, char2);
+    let t0 = _mm_mulhi_epu16(_mm_and_si128(shuffled, mask0), _mm_set1_epi32(0x04000040u32 as i32));
+    let t1 = _mm_mullo_epi16(_mm_and_si128(shuffled, mask1), _mm_set1_epi32(0x01000010u32 as i32));
+
+    // indices[i] ∈ [0, 63] for each byte i
+    let indices = _mm_or_si128(t0, t1);
+
+    // Step 3 — Alphabet lookup for an arbitrary 64-byte alphabet.
+    //
+    // pshufb zeros a lane when the index byte has bit 7 set, so a direct lookup
+    // only works for indices 0..15.  We split the 64-char alphabet into four
+    // 16-char blocks, select each via a comparison mask, then OR the results.
+    //
+    //   bits 5..4 of index → which block:  00 → alpha0,  01 → alpha1,
+    //                                       10 → alpha2,  11 → alpha3
+    let alpha0 = _mm_loadu_si128(alphabet as *const __m128i);
+    let alpha1 = _mm_loadu_si128(alphabet.add(16) as *const __m128i);
+    let alpha2 = _mm_loadu_si128(alphabet.add(32) as *const __m128i);
+    let alpha3 = _mm_loadu_si128(alphabet.add(48) as *const __m128i);
+
+    let upper2 = _mm_and_si128(indices, _mm_set1_epi8(0x30u8 as i8));
+    let sel0 = _mm_cmpeq_epi8(upper2, _mm_setzero_si128());
+    let sel1 = _mm_cmpeq_epi8(upper2, _mm_set1_epi8(0x10u8 as i8));
+    let sel2 = _mm_cmpeq_epi8(upper2, _mm_set1_epi8(0x20u8 as i8));
+    let sel3 = _mm_cmpeq_epi8(upper2, _mm_set1_epi8(0x30u8 as i8));
+
+    let idx_low = _mm_and_si128(indices, _mm_set1_epi8(0x0F));
+    let r0 = _mm_and_si128(_mm_shuffle_epi8(alpha0, idx_low), sel0);
+    let r1 = _mm_and_si128(_mm_shuffle_epi8(alpha1, idx_low), sel1);
+    let r2 = _mm_and_si128(_mm_shuffle_epi8(alpha2, idx_low), sel2);
+    let r3 = _mm_and_si128(_mm_shuffle_epi8(alpha3, idx_low), sel3);
+
+    let result = _mm_or_si128(_mm_or_si128(r0, r1), _mm_or_si128(r2, r3));
+
+    _mm_storeu_si128(dst as *mut __m128i, result);
 }
