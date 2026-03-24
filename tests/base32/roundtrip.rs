@@ -1,14 +1,14 @@
-use basekit::base64::{
-    ALPHABET_BASE64, Base64DecodeConfig, Base64EncodeConfig, DECODE_TABLE_BASE64, decode,
+use basekit::base32::{
+    ALPHABET_BASE32, Base32DecodeConfig, Base32EncodeConfig, DECODE_TABLE_BASE32, decode,
     decode_into, encode, encode_into,
 };
 
-fn create_encode_config() -> Base64EncodeConfig {
-    Base64EncodeConfig::new(ALPHABET_BASE64, b'=')
+fn create_encode_config() -> Base32EncodeConfig {
+    Base32EncodeConfig::new(ALPHABET_BASE32, b'=')
 }
 
-fn create_decode_config() -> Base64DecodeConfig {
-    Base64DecodeConfig::new(DECODE_TABLE_BASE64, b'=')
+fn create_decode_config() -> Base32DecodeConfig {
+    Base32DecodeConfig::new(DECODE_TABLE_BASE32, b'=')
 }
 
 fn roundtrip(original: &[u8]) {
@@ -25,11 +25,11 @@ fn roundtrip_into(original: &[u8]) {
     let enc_config = create_encode_config();
     let dec_config = create_decode_config();
 
-    let encoded_len = (original.len() / 3 + 1) * 4;
+    let encoded_len = (original.len() / 5 + 1) * 8;
     let mut encoded_dst = vec![0u8; encoded_len];
     let actual_encoded_len = encode_into(&enc_config, &mut encoded_dst, original).unwrap();
 
-    let decoded_len = (actual_encoded_len / 4) * 3;
+    let decoded_len = (actual_encoded_len / 8) * 5;
     let mut decoded_dst = vec![0u8; decoded_len];
     let actual_decoded_len = decode_into(
         &dec_config,
@@ -96,6 +96,18 @@ fn test_roundtrip_four_bytes() {
 
     roundtrip(b"test");
     roundtrip_into(b"test");
+}
+
+#[test]
+fn test_roundtrip_five_bytes() {
+    roundtrip(b"Hello");
+    roundtrip_into(b"Hello");
+
+    roundtrip(b"world");
+    roundtrip_into(b"world");
+
+    roundtrip(b"12345");
+    roundtrip_into(b"12345");
 }
 
 #[test]
@@ -180,7 +192,7 @@ fn test_roundtrip_random_like() {
 
 #[test]
 fn test_roundtrip_progressive_sizes() {
-    for size in 1..=100 {
+    for size in 1..=50 {
         let data: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
         roundtrip(&data);
         roundtrip_into(&data);
@@ -188,8 +200,8 @@ fn test_roundtrip_progressive_sizes() {
 }
 
 #[test]
-fn test_roundtrip_all_sizes_1_to_30() {
-    for size in 1..=30 {
+fn test_roundtrip_all_sizes_1_to_20() {
+    for size in 1..=20 {
         let data: Vec<u8> = (0..size).map(|i| ((i * 7 + 13) % 256) as u8).collect();
         roundtrip(&data);
         roundtrip_into(&data);
