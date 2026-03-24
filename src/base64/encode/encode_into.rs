@@ -18,13 +18,13 @@ unsafe fn encode_full_groups_into(
 
     #[cfg(feature = "simd-sse3")]
     {
-        let sse3_groups = src.len() / 48;
-        let sse3_bytes = sse3_groups * 48;
+        let sse3_groups = src.len() / 12;
+        let sse3_bytes = sse3_groups * 12;
 
         if sse3_bytes > 0 {
             offset += encode_full_groups_into_sse3(
                 config,
-                &mut dst[..sse3_groups * 64],
+                &mut dst[..sse3_groups * 16],
                 &src[..sse3_bytes],
             )?;
         }

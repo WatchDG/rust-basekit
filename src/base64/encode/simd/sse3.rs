@@ -3,8 +3,8 @@ use core::arch::x86_64::*;
 use crate::base64::config::Base64EncodeConfig;
 use crate::base64::error::Base64Error;
 
-/// Encodes full 48-byte groups (src.len() is guaranteed to be a multiple of 48).
-/// Each 48 bytes → 64 base64 characters. Tail/padding is handled by the caller.
+/// Encodes full 12-byte groups (src.len() is guaranteed to be a multiple of 12).
+/// Each 12 bytes → 16 base64 characters. Tail/padding is handled by the caller.
 #[target_feature(enable = "ssse3")]
 #[allow(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn encode_full_groups_into_sse3(
@@ -16,18 +16,14 @@ pub(crate) unsafe fn encode_full_groups_into_sse3(
     let mut src_offset = 0usize;
     let mut dst_offset = 0usize;
 
-    while src_offset + 48 <= src.len() {
+    while src_offset + 12 <= src.len() {
         let src_ptr = src.as_ptr().add(src_offset);
         let dst_ptr = dst.as_mut_ptr().add(dst_offset);
 
-        // 4 × (12 src bytes → 16 dst bytes) = 48 → 64
-        encode_sse3_block(src_ptr,         dst_ptr,         alphabet_ptr);
-        encode_sse3_block(src_ptr.add(12), dst_ptr.add(16), alphabet_ptr);
-        encode_sse3_block(src_ptr.add(24), dst_ptr.add(32), alphabet_ptr);
-        encode_sse3_block(src_ptr.add(36), dst_ptr.add(48), alphabet_ptr);
+        encode_sse3_block(src_ptr, dst_ptr, alphabet_ptr);
 
-        src_offset += 48;
-        dst_offset += 64;
+        src_offset += 12;
+        dst_offset += 16;
     }
 
     Ok(dst_offset)
