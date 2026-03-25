@@ -8,7 +8,7 @@ use crate::base64::error::Base64Error;
 #[target_feature(enable = "ssse3")]
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
-pub(crate) unsafe fn encode_full_groups_into_ssse3(
+pub(crate) unsafe fn ssse3_encode_full_groups_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
