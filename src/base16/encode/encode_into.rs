@@ -3,6 +3,9 @@ use core::ptr;
 use super::super::config::Base16EncodeConfig;
 use super::super::error::Base16Error;
 
+#[cfg(feature = "simd-ssse3")]
+use super::simd::ssse3::ssse3_encode_into;
+
 #[inline(always)]
 pub fn encode_into(
     config: &Base16EncodeConfig,
@@ -22,12 +25,21 @@ pub fn encode_into(
         });
     }
 
+    let mut src_offset = 0usize;
+
+    let mut dst_offset = 0usize;
+
+    #[cfg(feature = "simd-ssse3")]
+    {
+        let written =
+            unsafe { ssse3_encode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
+        src_offset += written / 2;
+        dst_offset += written;
+    }
+
     let alphabet_ptr = config.alphabet.as_ptr();
 
     unsafe {
-        let mut src_offset = 0usize;
-        let mut dst_offset = 0usize;
-
         while src_offset < src.len() {
             let byte = src[src_offset];
             let ptr = dst.as_mut_ptr().add(dst_offset);
