@@ -7,8 +7,7 @@ use crate::base64::error::Base64Error;
 /// Each 48 bytes → 64 base64 characters. Tail/padding is handled by the caller.
 #[target_feature(enable = "avx512f,avx512bw")]
 #[inline]
-#[allow(unsafe_op_in_unsafe_fn)]
-pub(crate) unsafe fn avx512_encode_full_groups_into(
+pub(crate) fn avx512_encode_full_groups_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
@@ -18,10 +17,11 @@ pub(crate) unsafe fn avx512_encode_full_groups_into(
     let mut dst_offset = 0usize;
 
     while src_offset + 48 <= src.len() {
-        let src_ptr = src.as_ptr().add(src_offset);
-        let dst_ptr = dst.as_mut_ptr().add(dst_offset);
-
-        encode_avx512_block(src_ptr, dst_ptr, alphabet_ptr);
+        unsafe {
+            let src_ptr = src.as_ptr().add(src_offset);
+            let dst_ptr = dst.as_mut_ptr().add(dst_offset);
+            encode_avx512_block(src_ptr, dst_ptr, alphabet_ptr);
+        }
 
         src_offset += 48;
         dst_offset += 64;
