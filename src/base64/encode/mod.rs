@@ -1,3 +1,4 @@
+pub mod encode_full_group_into;
 pub mod encode_full_groups_into;
 pub mod encode_impl;
 pub mod encode_into;
@@ -6,6 +7,7 @@ pub mod encode_tail_into;
 #[cfg(any(feature = "simd-ssse3", feature = "simd-avx2", feature = "simd-avx512"))]
 pub mod simd;
 
+pub use encode_full_group_into::encode_full_group_into;
 pub use encode_full_groups_into::encode_full_groups_into;
 pub use encode_impl::encode;
 pub use encode_into::encode_into;
