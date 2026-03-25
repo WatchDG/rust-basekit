@@ -3,6 +3,9 @@ use core::ptr;
 use super::super::config::Base32EncodeConfig;
 use super::super::error::Base32Error;
 
+#[cfg(feature = "simd-ssse3")]
+use super::simd::ssse3::ssse3_encode_full_groups_into;
+
 #[inline(always)]
 pub fn encode_full_groups_into(
     config: &Base32EncodeConfig,
@@ -25,12 +28,23 @@ pub fn encode_full_groups_into(
         });
     }
 
+    let mut src_offset = 0usize;
+    let mut dst_offset = 0usize;
+
+    #[cfg(feature = "simd-ssse3")]
+    {
+        // ssse3_encode_full_groups_into processes 2 groups (10 src bytes → 16 dst bytes)
+        // per iteration and returns the number of dst bytes written.
+        let written = unsafe { ssse3_encode_full_groups_into(config, dst, src) };
+        // Each 16 output bytes correspond to 10 input bytes (2 groups × 5 bytes).
+        src_offset += written / 8 * 5;
+        dst_offset += written;
+    }
+
     let alphabet_ptr = config.alphabet.as_ptr();
 
     unsafe {
-        let mut offset = 0usize;
-
-        for chunk in src.chunks_exact(5) {
+        for chunk in src[src_offset..].chunks_exact(5) {
             let b0 = chunk[0] as u32;
             let b1 = chunk[1] as u32;
             let b2 = chunk[2] as u32;
@@ -46,7 +60,7 @@ pub fn encode_full_groups_into(
             let c6 = (((b3 << 3) | (b4 >> 5)) & 0x1F) as usize;
             let c7 = (b4 & 0x1F) as usize;
 
-            let ptr = dst.as_mut_ptr().add(offset);
+            let ptr = dst.as_mut_ptr().add(dst_offset);
             ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
             ptr.offset(1)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
@@ -63,7 +77,7 @@ pub fn encode_full_groups_into(
             ptr.offset(7)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c7)));
 
-            offset += 8;
+            dst_offset += 8;
         }
 
         Ok(output_len)
