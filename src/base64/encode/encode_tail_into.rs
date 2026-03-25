@@ -4,8 +4,7 @@ use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
 
 #[inline(always)]
-#[allow(unsafe_op_in_unsafe_fn)]
-pub unsafe fn encode_tail_into(
+pub fn encode_tail_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
@@ -20,11 +19,13 @@ pub unsafe fn encode_tail_into(
             let c1 = ((triple >> 12) & 0x3F) as usize;
             let ptr = dst.as_mut_ptr();
 
-            ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
-            ptr.offset(1)
-                .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
-            ptr.offset(2).write(padding);
-            ptr.offset(3).write(padding);
+            unsafe {
+                ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
+                ptr.offset(1)
+                    .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
+                ptr.offset(2).write(padding);
+                ptr.offset(3).write(padding);
+            }
             Ok(4)
         }
         2 => {
@@ -34,12 +35,14 @@ pub unsafe fn encode_tail_into(
             let c2 = ((triple >> 6) & 0x3F) as usize;
             let ptr = dst.as_mut_ptr();
 
-            ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
-            ptr.offset(1)
-                .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
-            ptr.offset(2)
-                .write(ptr::read_unaligned(alphabet_ptr.add(c2)));
-            ptr.offset(3).write(padding);
+            unsafe {
+                ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
+                ptr.offset(1)
+                    .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
+                ptr.offset(2)
+                    .write(ptr::read_unaligned(alphabet_ptr.add(c2)));
+                ptr.offset(3).write(padding);
+            }
             Ok(4)
         }
         0 => Ok(0),
