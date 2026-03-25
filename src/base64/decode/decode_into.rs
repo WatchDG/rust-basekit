@@ -1,6 +1,9 @@
 use super::super::config::Base64DecodeConfig;
 use super::super::error::Base64Error;
 
+#[cfg(feature = "simd-ssse3")]
+use super::simd::ssse3::decode_full_groups_into_ssse3;
+
 #[inline(always)]
 unsafe fn decode_full_groups_into(
     config: &Base64DecodeConfig,
@@ -15,7 +18,27 @@ unsafe fn decode_full_groups_into(
     let decode_table = config.decode_table;
     let mut dst_offset = 0usize;
 
-    for group_idx in 0..full_groups {
+    #[cfg(feature = "simd-ssse3")]
+    let mut group_start = 0usize;
+    #[cfg(not(feature = "simd-ssse3"))]
+    let group_start = 0usize;
+
+    #[cfg(feature = "simd-ssse3")]
+    {
+        let simd_groups = (full_groups / 4) * 4;
+        if simd_groups > 0 {
+            dst_offset += unsafe {
+                decode_full_groups_into_ssse3(
+                    config,
+                    &mut dst[..simd_groups * 3],
+                    &src[..simd_groups * 4],
+                )
+            }?;
+            group_start = simd_groups;
+        }
+    }
+
+    for group_idx in group_start..full_groups {
         let chunk_start = group_idx * 4;
         let chunk = &src[chunk_start..chunk_start + 4];
 
