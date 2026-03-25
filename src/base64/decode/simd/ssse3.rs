@@ -1,5 +1,6 @@
 use core::arch::x86_64::*;
 
+use super::super::decode_full_group_into::decode_full_group_into;
 use crate::base64::config::Base64DecodeConfig;
 use crate::base64::error::Base64Error;
 
@@ -9,7 +10,7 @@ use crate::base64::error::Base64Error;
 #[target_feature(enable = "ssse3")]
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
-pub(crate) unsafe fn decode_full_groups_into_ssse3(
+pub(crate) unsafe fn ssse3_decode_full_groups_into(
     config: &Base64DecodeConfig,
     dst: &mut [u8],
     src: &[u8],
@@ -39,13 +40,16 @@ pub(crate) unsafe fn decode_full_groups_into_ssse3(
 
         // Any byte >= 128 → invalid ASCII, fall back to scalar for this block.
         if _mm_movemask_epi8(input) != 0 {
-            let written = scalar_decode_block(
-                config,
-                &src[src_offset..src_offset + 16],
-                src_offset,
-                dst,
-                dst_offset,
-            )?;
+            let mut written = 0usize;
+            for group_offset in (0..16).step_by(4) {
+                written += decode_full_group_into(
+                    config,
+                    &src[src_offset + group_offset..src_offset + group_offset + 4],
+                    src_offset + group_offset,
+                    dst,
+                    dst_offset + written,
+                )?;
+            }
             dst_offset += written;
             src_offset += 16;
             continue;
@@ -86,13 +90,16 @@ pub(crate) unsafe fn decode_full_groups_into_ssse3(
 
         // Any 0xFF in decoded means an invalid character in the table.
         if _mm_movemask_epi8(_mm_cmpeq_epi8(decoded, _mm_set1_epi8(-1))) != 0 {
-            let written = scalar_decode_block(
-                config,
-                &src[src_offset..src_offset + 16],
-                src_offset,
-                dst,
-                dst_offset,
-            )?;
+            let mut written = 0usize;
+            for group_offset in (0..16).step_by(4) {
+                written += decode_full_group_into(
+                    config,
+                    &src[src_offset + group_offset..src_offset + group_offset + 4],
+                    src_offset + group_offset,
+                    dst,
+                    dst_offset + written,
+                )?;
+            }
             dst_offset += written;
             src_offset += 16;
             continue;
@@ -123,81 +130,4 @@ pub(crate) unsafe fn decode_full_groups_into_ssse3(
     }
 
     Ok(dst_offset)
-}
-
-/// Scalar fallback for a single 4-group block (16 input bytes, 12 output bytes).
-/// `block_src_start` is the byte offset of this block within the original source slice,
-/// used for accurate error position reporting.
-#[inline(never)]
-#[allow(unsafe_op_in_unsafe_fn)]
-unsafe fn scalar_decode_block(
-    config: &Base64DecodeConfig,
-    block: &[u8],
-    block_src_start: usize,
-    dst: &mut [u8],
-    dst_offset: usize,
-) -> Result<usize, Base64Error> {
-    debug_assert_eq!(block.len(), 16);
-    let decode_table = config.decode_table;
-    let mut written = 0usize;
-
-    for group_rel in 0..4usize {
-        let chunk_start = block_src_start + group_rel * 4;
-        let chunk = &block[group_rel * 4..group_rel * 4 + 4];
-
-        let b0 = chunk[0];
-        let b1 = chunk[1];
-        let b2 = chunk[2];
-        let b3 = chunk[3];
-
-        if b0 == config.padding
-            || b1 == config.padding
-            || b2 == config.padding
-            || b3 == config.padding
-        {
-            return Err(Base64Error::InvalidPadding);
-        }
-
-        if (b0 | b1 | b2 | b3) & 0x80 != 0 {
-            let pos = if b0 & 0x80 != 0 {
-                0
-            } else if b1 & 0x80 != 0 {
-                1
-            } else if b2 & 0x80 != 0 {
-                2
-            } else {
-                3
-            };
-            return Err(Base64Error::InvalidCharacter(chunk[pos], chunk_start + pos));
-        }
-
-        let i0 = decode_table[b0 as usize];
-        let i1 = decode_table[b1 as usize];
-        let i2 = decode_table[b2 as usize];
-        let i3 = decode_table[b3 as usize];
-
-        if i0 < 0 || i1 < 0 || i2 < 0 || i3 < 0 {
-            let pos = if i0 < 0 {
-                0
-            } else if i1 < 0 {
-                1
-            } else if i2 < 0 {
-                2
-            } else {
-                3
-            };
-            return Err(Base64Error::InvalidCharacter(chunk[pos], chunk_start + pos));
-        }
-
-        let triple = ((i0 as u32) << 18) | ((i1 as u32) << 12) | ((i2 as u32) << 6) | (i3 as u32);
-
-        let ptr = dst.as_mut_ptr().add(dst_offset + written);
-        ptr.write((triple >> 16) as u8);
-        ptr.add(1).write((triple >> 8) as u8);
-        ptr.add(2).write(triple as u8);
-
-        written += 3;
-    }
-
-    Ok(written)
 }
