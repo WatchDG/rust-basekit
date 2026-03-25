@@ -2,6 +2,9 @@ use super::super::config::Base32DecodeConfig;
 use super::super::error::Base32Error;
 use super::decode_full_group_into::decode_full_group_into;
 
+#[cfg(feature = "simd-avx512")]
+use super::simd::avx512::avx512_decode_full_groups_into;
+
 #[cfg(feature = "simd-avx2")]
 use super::simd::avx2::avx2_decode_full_groups_into;
 
@@ -21,15 +24,34 @@ pub fn decode_full_groups_into(
 
     let mut dst_offset = 0usize;
 
-    #[cfg(any(feature = "simd-avx2", feature = "simd-ssse3"))]
+    #[cfg(any(feature = "simd-avx512", feature = "simd-avx2", feature = "simd-ssse3"))]
     let mut src_offset = 0usize;
-    #[cfg(not(any(feature = "simd-avx2", feature = "simd-ssse3")))]
+    #[cfg(not(any(feature = "simd-avx512", feature = "simd-avx2", feature = "simd-ssse3")))]
     let src_offset = 0usize;
+
+    #[cfg(feature = "simd-avx512")]
+    {
+        // Process 8 full groups (64 src bytes → 40 dst bytes) per AVX-512 iteration.
+        let avx512_groups = full_groups / 8;
+        let avx512_src_bytes = avx512_groups * 64;
+        if avx512_src_bytes > 0 {
+            let avx512_dst_bytes = avx512_groups * 40;
+            dst_offset += unsafe {
+                avx512_decode_full_groups_into(
+                    config,
+                    &mut dst[dst_offset..dst_offset + avx512_dst_bytes],
+                    &src[src_offset..src_offset + avx512_src_bytes],
+                )
+            }?;
+            src_offset += avx512_src_bytes;
+        }
+    }
 
     #[cfg(feature = "simd-avx2")]
     {
         // Process 4 full groups (32 src bytes → 20 dst bytes) per AVX2 iteration.
-        let avx2_groups = full_groups / 4;
+        let remaining_groups = full_groups - src_offset / 8;
+        let avx2_groups = remaining_groups / 4;
         let avx2_src_bytes = avx2_groups * 32;
         if avx2_src_bytes > 0 {
             let avx2_dst_bytes = avx2_groups * 20;
