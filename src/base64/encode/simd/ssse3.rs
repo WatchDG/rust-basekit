@@ -20,7 +20,7 @@ pub(crate) fn ssse3_encode_full_groups_into(
         unsafe {
             let src_ptr = src.as_ptr().add(src_offset);
             let dst_ptr = dst.as_mut_ptr().add(dst_offset);
-            encode_ssse3_block(src_ptr, dst_ptr, alphabet_ptr);
+            ssse3_encode_block(alphabet_ptr, dst_ptr, src_ptr);
         }
 
         src_offset += 12;
@@ -47,7 +47,7 @@ pub(crate) fn ssse3_encode_full_groups_into(
 #[target_feature(enable = "ssse3")]
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
-unsafe fn encode_ssse3_block(src: *const u8, dst: *mut u8, alphabet: *const u8) {
+unsafe fn ssse3_encode_block(alphabet: *const u8, dst: *mut u8, src: *const u8) {
     // Load 16 bytes (first 12 are the 4 input triples, last 4 are not used)
     let input = _mm_loadu_si128(src as *const __m128i);
 

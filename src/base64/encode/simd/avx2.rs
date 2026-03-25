@@ -20,7 +20,7 @@ pub(crate) fn avx2_encode_full_groups_into(
         unsafe {
             let src_ptr = src.as_ptr().add(src_offset);
             let dst_ptr = dst.as_mut_ptr().add(dst_offset);
-            encode_avx2_block(src_ptr, dst_ptr, alphabet_ptr);
+            avx2_encode_block(alphabet_ptr, dst_ptr, src_ptr);
         }
 
         src_offset += 24;
@@ -59,7 +59,7 @@ pub(crate) fn avx2_encode_full_groups_into(
 #[target_feature(enable = "avx2")]
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
-unsafe fn encode_avx2_block(src: *const u8, dst: *mut u8, alphabet: *const u8) {
+unsafe fn avx2_encode_block(alphabet: *const u8, dst: *mut u8, src: *const u8) {
     // Load two overlapping 16-byte windows so that each YMM lane gets the 12
     // bytes it needs at positions 0–11 within that lane.
     let lo = _mm_loadu_si128(src as *const __m128i);
