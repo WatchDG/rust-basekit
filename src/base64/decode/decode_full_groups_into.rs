@@ -20,7 +20,11 @@ pub(crate) unsafe fn decode_full_groups_into(
     }
 
     let mut dst_offset = 0usize;
+
+    #[cfg(any(feature = "simd-avx2", feature = "simd-ssse3"))]
     let mut src_offset = 0usize;
+    #[cfg(not(any(feature = "simd-avx2", feature = "simd-ssse3")))]
+    let src_offset = 0usize;
 
     #[cfg(feature = "simd-avx2")]
     {
