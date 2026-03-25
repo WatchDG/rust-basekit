@@ -2,6 +2,9 @@ use super::decode_full_group_into::decode_full_group_into;
 use crate::base64::config::Base64DecodeConfig;
 use crate::base64::error::Base64Error;
 
+#[cfg(feature = "simd-avx2")]
+use super::simd::avx2::avx2_decode_full_groups_into;
+
 #[cfg(feature = "simd-ssse3")]
 use super::simd::ssse3::ssse3_decode_full_groups_into;
 
@@ -19,18 +22,38 @@ pub(crate) unsafe fn decode_full_groups_into(
     let mut dst_offset = 0usize;
     let mut src_offset = 0usize;
 
+    #[cfg(feature = "simd-avx2")]
+    {
+        // Process 8 full groups (32 src bytes → 24 dst bytes) per AVX2 iteration.
+        let avx2_src_bytes = (full_groups / 8) * 32;
+        if avx2_src_bytes > 0 {
+            let avx2_dst_bytes = avx2_src_bytes / 4 * 3;
+            dst_offset += unsafe {
+                avx2_decode_full_groups_into(
+                    config,
+                    &mut dst[dst_offset..dst_offset + avx2_dst_bytes],
+                    &src[src_offset..src_offset + avx2_src_bytes],
+                )
+            }?;
+            src_offset += avx2_src_bytes;
+        }
+    }
+
     #[cfg(feature = "simd-ssse3")]
     {
-        let simd_bytes = (full_groups / 4) * 16;
-        if simd_bytes > 0 {
+        // Process 4 full groups (16 src bytes → 12 dst bytes) per SSSE3 iteration.
+        let remaining_groups = full_groups - src_offset / 4;
+        let ssse3_src_bytes = (remaining_groups / 4) * 16;
+        if ssse3_src_bytes > 0 {
+            let ssse3_dst_bytes = ssse3_src_bytes / 4 * 3;
             dst_offset += unsafe {
                 ssse3_decode_full_groups_into(
                     config,
-                    &mut dst[..simd_bytes / 4 * 3],
-                    &src[..simd_bytes],
+                    &mut dst[dst_offset..dst_offset + ssse3_dst_bytes],
+                    &src[src_offset..src_offset + ssse3_src_bytes],
                 )
             }?;
-            src_offset = simd_bytes;
+            src_offset += ssse3_src_bytes;
         }
     }
 
