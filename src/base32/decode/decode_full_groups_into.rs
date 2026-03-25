@@ -2,6 +2,13 @@ use super::super::config::Base32DecodeConfig;
 use super::super::error::Base32Error;
 use super::decode_full_group_into::decode_full_group_into;
 
+#[cfg(feature = "simd-avx2")]
+use crate::cpu::has_avx2;
+#[cfg(feature = "simd-avx512")]
+use crate::cpu::has_avx512f;
+#[cfg(feature = "simd-ssse3")]
+use crate::cpu::has_ssse3;
+
 #[cfg(feature = "simd-avx512")]
 use super::simd::avx512::avx512_decode_full_groups_into;
 
@@ -30,8 +37,7 @@ pub fn decode_full_groups_into(
     let src_offset = 0usize;
 
     #[cfg(feature = "simd-avx512")]
-    {
-        // Process 8 full groups (64 src bytes → 40 dst bytes) per AVX-512 iteration.
+    if has_avx512f() {
         let avx512_groups = full_groups / 8;
         let avx512_src_bytes = avx512_groups * 64;
         if avx512_src_bytes > 0 {
@@ -48,8 +54,7 @@ pub fn decode_full_groups_into(
     }
 
     #[cfg(feature = "simd-avx2")]
-    {
-        // Process 4 full groups (32 src bytes → 20 dst bytes) per AVX2 iteration.
+    if has_avx2() {
         let remaining_groups = full_groups - src_offset / 8;
         let avx2_groups = remaining_groups / 4;
         let avx2_src_bytes = avx2_groups * 32;
@@ -67,8 +72,7 @@ pub fn decode_full_groups_into(
     }
 
     #[cfg(feature = "simd-ssse3")]
-    {
-        // Process 2 full groups (16 src bytes → 10 dst bytes) per SSSE3 iteration.
+    if has_ssse3() {
         let remaining_groups = full_groups - src_offset / 8;
         let ssse3_groups = remaining_groups / 2;
         let ssse3_src_bytes = ssse3_groups * 16;

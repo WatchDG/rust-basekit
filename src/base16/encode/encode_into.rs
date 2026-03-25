@@ -4,6 +4,13 @@ use super::super::config::Base16EncodeConfig;
 use super::super::error::Base16Error;
 
 #[cfg(feature = "simd-avx2")]
+use crate::cpu::has_avx2;
+#[cfg(feature = "simd-avx512")]
+use crate::cpu::has_avx512f;
+#[cfg(feature = "simd-ssse3")]
+use crate::cpu::has_ssse3;
+
+#[cfg(feature = "simd-avx2")]
 use super::simd::avx2::avx2_encode_into;
 #[cfg(feature = "simd-avx512")]
 use super::simd::avx512::avx512_encode_into;
@@ -30,12 +37,10 @@ pub fn encode_into(
     }
 
     let mut src_offset = 0usize;
-
     let mut dst_offset = 0usize;
 
     #[cfg(feature = "simd-avx512")]
-    {
-        // avx512_encode_into processes 32 src bytes → 64 dst bytes per iteration.
+    if has_avx512f() {
         let written =
             unsafe { avx512_encode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
         src_offset += written / 2;
@@ -43,8 +48,7 @@ pub fn encode_into(
     }
 
     #[cfg(feature = "simd-avx2")]
-    {
-        // avx2_encode_into processes 16 src bytes → 32 dst bytes per iteration.
+    if has_avx2() {
         let written =
             unsafe { avx2_encode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
         src_offset += written / 2;
@@ -52,8 +56,7 @@ pub fn encode_into(
     }
 
     #[cfg(feature = "simd-ssse3")]
-    {
-        // ssse3_encode_into processes 8 src bytes → 16 dst bytes per iteration.
+    if has_ssse3() {
         let written =
             unsafe { ssse3_encode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
         src_offset += written / 2;

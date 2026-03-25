@@ -3,6 +3,13 @@ use super::super::error::Base64Error;
 use super::encode_full_group_into;
 
 #[cfg(feature = "simd-avx2")]
+use crate::cpu::has_avx2;
+#[cfg(feature = "simd-avx512")]
+use crate::cpu::has_avx512f;
+#[cfg(feature = "simd-ssse3")]
+use crate::cpu::has_ssse3;
+
+#[cfg(feature = "simd-avx2")]
 use super::simd::avx2::avx2_encode_full_groups_into;
 #[cfg(feature = "simd-avx512")]
 use super::simd::avx512::avx512_encode_full_groups_into;
@@ -10,8 +17,7 @@ use super::simd::avx512::avx512_encode_full_groups_into;
 use super::simd::ssse3::ssse3_encode_full_groups_into;
 
 #[inline(always)]
-#[allow(unsafe_op_in_unsafe_fn)]
-pub unsafe fn encode_full_groups_into(
+pub fn encode_full_groups_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
@@ -24,7 +30,7 @@ pub unsafe fn encode_full_groups_into(
     let src_offset = 0usize;
 
     #[cfg(feature = "simd-avx512")]
-    {
+    if has_avx512f() {
         let avx512_groups = if src.len() >= 96 {
             (src.len() - 48) / 48
         } else {
@@ -33,17 +39,19 @@ pub unsafe fn encode_full_groups_into(
         let avx512_bytes = avx512_groups * 48;
 
         if avx512_bytes > 0 {
-            dst_offset += avx512_encode_full_groups_into(
-                config,
-                &mut dst[..avx512_groups * 64],
-                &src[..avx512_bytes],
-            )?;
+            dst_offset += unsafe {
+                avx512_encode_full_groups_into(
+                    config,
+                    &mut dst[..avx512_groups * 64],
+                    &src[..avx512_bytes],
+                )?
+            };
             src_offset = avx512_bytes;
         }
     }
 
     #[cfg(feature = "simd-avx2")]
-    {
+    if has_avx2() {
         let remaining = &src[src_offset..];
         let avx2_groups = if remaining.len() >= 48 {
             (remaining.len() - 24) / 24
@@ -53,17 +61,19 @@ pub unsafe fn encode_full_groups_into(
         let avx2_bytes = avx2_groups * 24;
 
         if avx2_bytes > 0 {
-            dst_offset += avx2_encode_full_groups_into(
-                config,
-                &mut dst[dst_offset..dst_offset + avx2_groups * 32],
-                &remaining[..avx2_bytes],
-            )?;
+            dst_offset += unsafe {
+                avx2_encode_full_groups_into(
+                    config,
+                    &mut dst[dst_offset..dst_offset + avx2_groups * 32],
+                    &remaining[..avx2_bytes],
+                )?
+            };
             src_offset += avx2_bytes;
         }
     }
 
     #[cfg(feature = "simd-ssse3")]
-    {
+    if has_ssse3() {
         let remaining = &src[src_offset..];
         let ssse3_groups = if remaining.len() >= 24 {
             remaining.len() / 12 - 1
@@ -73,17 +83,19 @@ pub unsafe fn encode_full_groups_into(
         let ssse3_bytes = ssse3_groups * 12;
 
         if ssse3_bytes > 0 {
-            dst_offset += ssse3_encode_full_groups_into(
-                config,
-                &mut dst[dst_offset..dst_offset + ssse3_groups * 16],
-                &remaining[..ssse3_bytes],
-            )?;
+            dst_offset += unsafe {
+                ssse3_encode_full_groups_into(
+                    config,
+                    &mut dst[dst_offset..dst_offset + ssse3_groups * 16],
+                    &remaining[..ssse3_bytes],
+                )?
+            };
             src_offset += ssse3_bytes;
         }
     }
 
     for chunk in src[src_offset..].chunks_exact(3) {
-        dst_offset += encode_full_group_into(config, &mut dst[dst_offset..], chunk);
+        dst_offset += unsafe { encode_full_group_into(config, &mut dst[dst_offset..], chunk) };
     }
 
     Ok(dst_offset)

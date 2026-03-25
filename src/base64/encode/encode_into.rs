@@ -30,17 +30,15 @@ pub fn encode_into(
         });
     }
 
-    unsafe {
-        let mut dst_offset = 0usize;
+    let mut dst_offset = 0usize;
 
+    dst_offset +=
+        encode_full_groups_into(config, &mut dst[..full_groups * 4], &src[..full_groups * 3])?;
+
+    if tail_len > 0 {
         dst_offset +=
-            encode_full_groups_into(config, &mut dst[..full_groups * 4], &src[..full_groups * 3])?;
-
-        if tail_len > 0 {
-            dst_offset +=
-                encode_tail_into(config, &mut dst[dst_offset..][..4], &src[full_groups * 3..])?;
-        }
-
-        Ok(dst_offset)
+            encode_tail_into(config, &mut dst[dst_offset..][..4], &src[full_groups * 3..])?;
     }
+
+    Ok(dst_offset)
 }
