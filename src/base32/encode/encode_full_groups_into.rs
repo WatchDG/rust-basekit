@@ -5,6 +5,8 @@ use super::super::error::Base32Error;
 
 #[cfg(feature = "simd-avx2")]
 use super::simd::avx2::avx2_encode_full_groups_into;
+#[cfg(feature = "simd-avx512")]
+use super::simd::avx512::avx512_encode_full_groups_into;
 #[cfg(feature = "simd-ssse3")]
 use super::simd::ssse3::ssse3_encode_full_groups_into;
 
@@ -30,18 +32,32 @@ pub fn encode_full_groups_into(
         });
     }
 
-    #[cfg(any(feature = "simd-ssse3", feature = "simd-avx2"))]
+    #[cfg(any(feature = "simd-avx512", feature = "simd-ssse3", feature = "simd-avx2"))]
     let mut src_offset = 0usize;
-    #[cfg(not(any(feature = "simd-ssse3", feature = "simd-avx2")))]
+    #[cfg(not(any(feature = "simd-avx512", feature = "simd-ssse3", feature = "simd-avx2")))]
     let src_offset = 0usize;
 
     let mut dst_offset = 0usize;
+
+    #[cfg(feature = "simd-avx512")]
+    {
+        // avx512_encode_full_groups_into processes 8 groups (40 src bytes → 64 dst bytes)
+        // per iteration and returns the number of dst bytes written.
+        let written = unsafe {
+            avx512_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])
+        };
+        // Each 64 output bytes correspond to 40 input bytes (8 groups × 5 bytes).
+        src_offset += written / 8 * 5;
+        dst_offset += written;
+    }
 
     #[cfg(feature = "simd-avx2")]
     {
         // avx2_encode_full_groups_into processes 4 groups (20 src bytes → 32 dst bytes)
         // per iteration and returns the number of dst bytes written.
-        let written = unsafe { avx2_encode_full_groups_into(config, dst, src) };
+        let written = unsafe {
+            avx2_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])
+        };
         // Each 32 output bytes correspond to 20 input bytes (4 groups × 5 bytes).
         src_offset += written / 8 * 5;
         dst_offset += written;
