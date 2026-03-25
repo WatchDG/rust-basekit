@@ -3,6 +3,8 @@ use super::super::error::Base16Error;
 
 #[cfg(feature = "simd-avx2")]
 use super::simd::avx2::avx2_decode_into;
+#[cfg(feature = "simd-avx512")]
+use super::simd::avx512::avx512_decode_into;
 #[cfg(feature = "simd-ssse3")]
 use super::simd::ssse3::ssse3_decode_into;
 
@@ -31,6 +33,14 @@ pub fn decode_into(
 
     let mut src_offset = 0usize;
     let mut dst_offset = 0usize;
+
+    #[cfg(feature = "simd-avx512")]
+    {
+        let written =
+            unsafe { avx512_decode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
+        src_offset += written * 2;
+        dst_offset += written;
+    }
 
     #[cfg(feature = "simd-avx2")]
     {
