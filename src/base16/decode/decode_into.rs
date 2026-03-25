@@ -1,6 +1,9 @@
 use super::super::config::Base16DecodeConfig;
 use super::super::error::Base16Error;
 
+#[cfg(feature = "simd-ssse3")]
+use super::simd::ssse3::ssse3_decode_into;
+
 #[inline(always)]
 pub fn decode_into(
     config: &Base16DecodeConfig,
@@ -24,12 +27,20 @@ pub fn decode_into(
         });
     }
 
+    let mut src_offset = 0usize;
+    let mut dst_offset = 0usize;
+
+    #[cfg(feature = "simd-ssse3")]
+    {
+        let written =
+            unsafe { ssse3_decode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
+        src_offset += written * 2;
+        dst_offset += written;
+    }
+
     let decode_table = config.decode_table;
 
     unsafe {
-        let mut src_offset = 0usize;
-        let mut dst_offset = 0usize;
-
         while src_offset < src.len() {
             let high_nibble = src[src_offset];
             let low_nibble = src[src_offset + 1];
