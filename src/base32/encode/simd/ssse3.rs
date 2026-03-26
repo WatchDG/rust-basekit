@@ -78,8 +78,8 @@ pub(crate) unsafe fn ssse3_encode_full_groups_into(
     let mut dst_offset = 0usize;
 
     // Process 2 groups (10 src bytes → 16 dst bytes) per iteration.
-    // The guard `src_offset + 16 <= src.len()` ensures the 16-byte loadu is always safe.
-    while src_offset + 16 <= src.len() {
+    // The guard `src_offset + 10 <= src.len()` ensures the 16-byte loadu is always safe.
+    while src_offset + 10 <= src.len() {
         let input = _mm_loadu_si128(src.as_ptr().add(src_offset) as *const __m128i);
 
         // Build 8 × 16-bit BE windows via byte shuffle.

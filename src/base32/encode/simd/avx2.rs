@@ -69,8 +69,8 @@ pub(crate) unsafe fn avx2_encode_full_groups_into(
     //   lo = loadu(src + src_offset)      → lane 0: groups 0 and 1 (bytes 0–9 used)
     //   hi = loadu(src + src_offset + 10) → lane 1: groups 2 and 3 (bytes 0–9 of this window)
     //
-    // The second load touches bytes [src_offset+10 .. src_offset+26], so the guard is +26.
-    while src_offset + 26 <= src.len() {
+    // Max load is at src_offset+10, so guard is src_offset+20 for safe loads of 20 bytes.
+    while src_offset + 20 <= src.len() {
         let lo = _mm_loadu_si128(src.as_ptr().add(src_offset) as *const __m128i);
         let hi = _mm_loadu_si128(src.as_ptr().add(src_offset + 10) as *const __m128i);
 

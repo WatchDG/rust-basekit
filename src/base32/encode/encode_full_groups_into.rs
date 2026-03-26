@@ -39,43 +39,68 @@ pub fn encode_full_groups_into(
         });
     }
 
+    let mut dst_offset = 0usize;
+
     #[cfg(any(feature = "simd-avx512", feature = "simd-avx2", feature = "simd-ssse3"))]
     let mut src_offset = 0usize;
     #[cfg(not(any(feature = "simd-avx512", feature = "simd-avx2", feature = "simd-ssse3")))]
     let src_offset = 0usize;
-    let mut dst_offset = 0usize;
 
     #[cfg(feature = "simd-avx512")]
     if is_available_feature_simd_avx512() {
-        let written = unsafe {
-            avx512_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])?
-        };
-        src_offset += written / 8 * 5;
-        dst_offset += written;
+        let avx512_groups = src.len() / 40;
+        let avx512_bytes = avx512_groups * 40;
+
+        if avx512_bytes > 0 {
+            dst_offset += unsafe {
+                avx512_encode_full_groups_into(
+                    config,
+                    &mut dst[..avx512_groups * 64],
+                    &src[..avx512_bytes],
+                )?
+            };
+            src_offset = avx512_bytes;
+        }
     }
 
     #[cfg(feature = "simd-avx2")]
     if is_available_feature_simd_avx2() {
-        let written = unsafe {
-            avx2_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])?
-        };
-        src_offset += written / 8 * 5;
-        dst_offset += written;
+        let remaining = &src[src_offset..];
+        let avx2_groups = remaining.len() / 20;
+        let avx2_bytes = avx2_groups * 20;
+
+        if avx2_bytes > 0 {
+            dst_offset += unsafe {
+                avx2_encode_full_groups_into(
+                    config,
+                    &mut dst[dst_offset..dst_offset + avx2_groups * 32],
+                    &remaining[..avx2_bytes],
+                )?
+            };
+            src_offset += avx2_bytes;
+        }
     }
 
     #[cfg(feature = "simd-ssse3")]
     if is_available_feature_simd_ssse3() {
-        let written = unsafe {
-            ssse3_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])?
-        };
-        src_offset += written / 8 * 5;
-        dst_offset += written;
+        let remaining = &src[src_offset..];
+        let ssse3_groups = remaining.len() / 10;
+        let ssse3_bytes = ssse3_groups * 10;
+
+        if ssse3_bytes > 0 {
+            dst_offset += unsafe {
+                ssse3_encode_full_groups_into(
+                    config,
+                    &mut dst[dst_offset..dst_offset + ssse3_groups * 16],
+                    &remaining[..ssse3_bytes],
+                )?
+            };
+            src_offset += ssse3_bytes;
+        }
     }
 
-    let remaining = &src[src_offset..];
-    if !remaining.is_empty() {
-        let written = encode_full_group_into(config, &mut dst[dst_offset..], remaining);
-        dst_offset += written;
+    for chunk in src[src_offset..].chunks_exact(5) {
+        dst_offset += encode_full_group_into(config, &mut dst[dst_offset..], chunk);
     }
 
     Ok(dst_offset)
