@@ -1,6 +1,7 @@
 use core::arch::x86_64::*;
 
 use crate::base32::config::Base32EncodeConfig;
+use crate::base32::error::Base32Error;
 
 /// Encodes full 5-byte groups into base32 characters using SSSE3.
 ///
@@ -16,7 +17,7 @@ pub(crate) unsafe fn ssse3_encode_full_groups_into(
     config: &Base32EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
-) -> usize {
+) -> Result<usize, Base32Error> {
     debug_assert_eq!(src.len() % 5, 0);
 
     // Load the two 16-byte halves of the 32-char alphabet.
@@ -115,5 +116,5 @@ pub(crate) unsafe fn ssse3_encode_full_groups_into(
         dst_offset += 16;
     }
 
-    dst_offset
+    Ok(dst_offset)
 }

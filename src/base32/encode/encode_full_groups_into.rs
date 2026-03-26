@@ -48,7 +48,7 @@ pub fn encode_full_groups_into(
     #[cfg(feature = "simd-avx512")]
     if is_available_feature_simd_avx512() {
         let written = unsafe {
-            avx512_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])
+            avx512_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])?
         };
         src_offset += written / 8 * 5;
         dst_offset += written;
@@ -57,7 +57,7 @@ pub fn encode_full_groups_into(
     #[cfg(feature = "simd-avx2")]
     if is_available_feature_simd_avx2() {
         let written = unsafe {
-            avx2_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])
+            avx2_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])?
         };
         src_offset += written / 8 * 5;
         dst_offset += written;
@@ -66,7 +66,7 @@ pub fn encode_full_groups_into(
     #[cfg(feature = "simd-ssse3")]
     if is_available_feature_simd_ssse3() {
         let written = unsafe {
-            ssse3_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])
+            ssse3_encode_full_groups_into(config, &mut dst[dst_offset..], &src[src_offset..])?
         };
         src_offset += written / 8 * 5;
         dst_offset += written;
