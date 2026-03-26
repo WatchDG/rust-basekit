@@ -16,7 +16,7 @@ fn roundtrip(original: &[u8]) {
     let dec_config = create_decode_config();
 
     let encoded = encode(&enc_config, original);
-    let decoded = decode(&dec_config, &encoded).unwrap();
+    let decoded = decode(&dec_config, &Vec::<u8>::from(encoded)).unwrap();
 
     assert_eq!(decoded, original, "Round-trip failed for {:?}", original);
 }

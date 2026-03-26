@@ -1,9 +1,10 @@
 use super::super::config::Base32EncodeConfig;
 use super::encode_into::encode_into;
+use super::output::Base32EncodeOutput;
 
-pub fn encode(config: &Base32EncodeConfig, data: &[u8]) -> Vec<u8> {
+pub fn encode(config: &Base32EncodeConfig, data: &[u8]) -> Base32EncodeOutput {
     if data.is_empty() {
-        return Vec::new();
+        return Base32EncodeOutput { inner: Vec::new() };
     }
 
     let full_chunks = data.len() / 5;
@@ -20,5 +21,5 @@ pub fn encode(config: &Base32EncodeConfig, data: &[u8]) -> Vec<u8> {
 
     let mut output = vec![config.padding; output_len];
     let _ = encode_into(config, &mut output, data).unwrap();
-    output
+    Base32EncodeOutput { inner: output }
 }

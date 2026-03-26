@@ -10,5 +10,5 @@ pub use consts::{
     PADDING_BASE32,
 };
 pub use decode::{decode, decode_into};
-pub use encode::{encode, encode_into};
+pub use encode::{Base32EncodeOutput, encode, encode_into};
 pub use error::Base32Error;

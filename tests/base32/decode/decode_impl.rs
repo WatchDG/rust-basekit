@@ -120,7 +120,7 @@ fn test_round_trip_hello() {
 
     let original = b"Hello, World!";
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, original);
 }
 
@@ -132,6 +132,6 @@ fn test_round_trip_random() {
 
     let data: Vec<u8> = (0..1000).map(|i| (i * 17 % 256) as u8).collect();
     let encoded = encode(&encode_config, &data);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, data);
 }

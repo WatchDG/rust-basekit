@@ -8,21 +8,21 @@ fn create_config() -> Base32EncodeConfig {
 fn test_empty() {
     let config = create_config();
     let result = encode(&config, &[]);
-    assert_eq!(result, b"");
+    assert_eq!(Vec::<u8>::from(result), b"");
 }
 
 #[test]
 fn test_base32hex_encodes_zeros_differently() {
     let config = create_config();
     let result = encode(&config, &[0]);
-    assert_eq!(result, b"00======");
+    assert_eq!(Vec::<u8>::from(result), b"00======");
 }
 
 #[test]
 fn test_base32hex_encodes_five_zeros() {
     let config = create_config();
     let result = encode(&config, &[0, 0, 0, 0, 0]);
-    assert_eq!(result, b"00000000");
+    assert_eq!(Vec::<u8>::from(result), b"00000000");
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn test_round_trip_hello() {
 
     let original = b"Hello, World!";
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, original);
 }
 
@@ -59,7 +59,7 @@ fn test_round_trip_random() {
 
     let data: Vec<u8> = (0..1000).map(|i| (i * 17 % 256) as u8).collect();
     let encoded = encode(&encode_config, &data);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, data);
 }
 
@@ -71,7 +71,7 @@ fn test_round_trip_foo_bar() {
 
     let original = b"foo bar";
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, original);
 }
 
@@ -83,7 +83,7 @@ fn test_round_trip_five_bytes() {
 
     let original = &[102u8, 111, 111, 98, 97];
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, original);
 }
 
@@ -95,7 +95,7 @@ fn test_round_trip_four_bytes() {
 
     let original = &[102u8, 111, 111, 98];
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, original);
 }
 
@@ -107,7 +107,7 @@ fn test_round_trip_three_bytes() {
 
     let original = &[102u8, 111, 111];
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, original);
 }
 
@@ -119,7 +119,7 @@ fn test_round_trip_two_bytes() {
 
     let original = &[102u8, 111];
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, original);
 }
 
@@ -131,7 +131,7 @@ fn test_round_trip_single_byte() {
 
     let original = &[102u8];
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, original);
 }
 
@@ -143,6 +143,6 @@ fn test_round_trip_all_zeros() {
 
     let original = &[0u8, 0, 0, 0, 0];
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &encoded).unwrap();
+    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
     assert_eq!(decoded, original);
 }
