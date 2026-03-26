@@ -10,5 +10,5 @@ pub use consts::{
     DECODE_TABLE_BASE16_UPPERCASE,
 };
 pub use decode::{decode, decode_into};
-pub use encode::{encode, encode_into};
+pub use encode::{Base16EncodeOutput, encode, encode_into};
 pub use error::Base16Error;
