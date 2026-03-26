@@ -2,19 +2,18 @@ use super::super::config::Base32DecodeConfig;
 use super::super::error::Base32Error;
 
 #[inline(always)]
-pub unsafe fn decode_tail_into(
+pub fn decode_tail_into(
     config: &Base32DecodeConfig,
-    chunk: &[u8],
-    chunk_start: usize,
-    padding_count: usize,
     dst: &mut [u8],
-    dst_offset: usize,
+    src: &[u8],
+    src_offset: usize,
+    padding_count: usize,
 ) -> Result<usize, Base32Error> {
     let decode_table = config.decode_table;
     let mut indices: [i8; 8] = [0; 8];
 
-    for (j, &byte) in chunk.iter().enumerate() {
-        let pos = chunk_start + j;
+    for (j, &byte) in src.iter().enumerate() {
+        let pos = src_offset + j;
 
         if byte == config.padding {
             let expected_min_pos = 8 - padding_count;
@@ -58,37 +57,33 @@ pub unsafe fn decode_tail_into(
     let b3 = (i4 << 7) | (i5 << 2) | (i6 >> 3);
     let b4 = (i6 << 5) | i7;
 
-    unsafe {
-        let ptr = dst.as_mut_ptr().add(dst_offset);
-
-        match padding_count {
-            6 => {
-                ptr.write(b0 as u8);
-            }
-            4 => {
-                ptr.write(b0 as u8);
-                ptr.offset(1).write(b1 as u8);
-            }
-            3 => {
-                ptr.write(b0 as u8);
-                ptr.offset(1).write(b1 as u8);
-                ptr.offset(2).write(b2 as u8);
-            }
-            1 => {
-                ptr.write(b0 as u8);
-                ptr.offset(1).write(b1 as u8);
-                ptr.offset(2).write(b2 as u8);
-                ptr.offset(3).write(b3 as u8);
-            }
-            0 => {
-                ptr.write(b0 as u8);
-                ptr.offset(1).write(b1 as u8);
-                ptr.offset(2).write(b2 as u8);
-                ptr.offset(3).write(b3 as u8);
-                ptr.offset(4).write(b4 as u8);
-            }
-            _ => unreachable!(),
+    match padding_count {
+        6 => {
+            dst[0] = b0 as u8;
         }
+        4 => {
+            dst[0] = b0 as u8;
+            dst[1] = b1 as u8;
+        }
+        3 => {
+            dst[0] = b0 as u8;
+            dst[1] = b1 as u8;
+            dst[2] = b2 as u8;
+        }
+        1 => {
+            dst[0] = b0 as u8;
+            dst[1] = b1 as u8;
+            dst[2] = b2 as u8;
+            dst[3] = b3 as u8;
+        }
+        0 => {
+            dst[0] = b0 as u8;
+            dst[1] = b1 as u8;
+            dst[2] = b2 as u8;
+            dst[3] = b3 as u8;
+            dst[4] = b4 as u8;
+        }
+        _ => unreachable!(),
     }
 
     Ok(bytes_written)

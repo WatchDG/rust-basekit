@@ -44,17 +44,14 @@ pub fn decode_into(
     let full_groups = clean_len / 8;
     let has_tail = total_groups > full_groups;
 
-    unsafe {
-        let mut dst_offset = 0usize;
+    let mut dst_offset = 0usize;
 
-        dst_offset += decode_full_groups_into(config, dst, src, full_groups)?;
+    dst_offset += decode_full_groups_into(config, dst, src, full_groups)?;
 
-        if has_tail {
-            let i = full_groups * 8;
-            let chunk = &src[i..core::cmp::min(i + 8, src.len())];
-            dst_offset += decode_tail_into(config, chunk, i, padding_count, dst, dst_offset)?;
-        }
-
-        Ok(dst_offset)
+    if has_tail {
+        let tail_src = &src[full_groups * 8..core::cmp::min(full_groups * 8 + 8, src.len())];
+        dst_offset += decode_tail_into(config, &mut dst[dst_offset..], tail_src, full_groups * 8, padding_count)?;
     }
+
+    Ok(dst_offset)
 }
