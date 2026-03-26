@@ -1,6 +1,7 @@
 use core::arch::x86_64::*;
 
 use crate::base16::config::Base16EncodeConfig;
+use crate::base16::error::Base16Error;
 
 /// Encodes bytes into base16 (hex) characters using SSSE3.
 ///
@@ -15,7 +16,7 @@ pub(crate) unsafe fn ssse3_encode_into(
     config: &Base16EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
-) -> usize {
+) -> Result<usize, Base16Error> {
     // The 16-char alphabet fits entirely in a single 128-bit register,
     // so a single pshufb can map any nibble (0–15) to its hex character.
     let alphabet = _mm_loadu_si128(config.alphabet.as_ptr() as *const __m128i);
@@ -41,5 +42,5 @@ pub(crate) unsafe fn ssse3_encode_into(
         dst_offset += 16;
     }
 
-    dst_offset
+    Ok(dst_offset)
 }

@@ -1,6 +1,7 @@
 use core::arch::x86_64::*;
 
 use crate::base16::config::Base16EncodeConfig;
+use crate::base16::error::Base16Error;
 
 /// Encodes bytes into base16 (hex) characters using AVX-512.
 ///
@@ -15,7 +16,7 @@ pub(crate) unsafe fn avx512_encode_into(
     config: &Base16EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
-) -> usize {
+) -> Result<usize, Base16Error> {
     // Broadcast the 16-char alphabet into all four 128-bit lanes.
     let alphabet =
         _mm512_broadcast_i32x4(_mm_loadu_si128(config.alphabet.as_ptr() as *const __m128i));
@@ -55,5 +56,5 @@ pub(crate) unsafe fn avx512_encode_into(
         dst_offset += 64;
     }
 
-    dst_offset
+    Ok(dst_offset)
 }
