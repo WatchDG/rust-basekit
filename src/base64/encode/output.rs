@@ -1,6 +1,6 @@
 #[derive(PartialEq, Eq, Hash)]
 pub struct Base64EncodeOutput {
-    pub inner: Vec<u8>,
+    pub(crate) inner: Vec<u8>,
 }
 
 impl From<Base64EncodeOutput> for Vec<u8> {
