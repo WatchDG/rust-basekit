@@ -16,3 +16,9 @@ impl TryFrom<Base64DecodeOutput> for String {
         String::from_utf8(value.inner)
     }
 }
+
+impl AsRef<[u8]> for Base64DecodeOutput {
+    fn as_ref(&self) -> &[u8] {
+        &self.inner
+    }
+}

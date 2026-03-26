@@ -14,3 +14,9 @@ impl From<Base64EncodeOutput> for String {
         String::from_utf8(value.inner).expect("Base64 output is valid UTF-8")
     }
 }
+
+impl AsRef<[u8]> for Base64EncodeOutput {
+    fn as_ref(&self) -> &[u8] {
+        &self.inner
+    }
+}
