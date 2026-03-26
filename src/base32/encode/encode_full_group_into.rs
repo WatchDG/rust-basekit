@@ -40,21 +40,21 @@ pub fn encode_full_group_into(
         let ptr = dst.as_mut_ptr();
 
         unsafe {
-            ptr.offset(dst_offset as isize)
+            ptr.add(dst_offset)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c0)));
-            ptr.offset(dst_offset as isize + 1)
+            ptr.add(dst_offset + 1)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
-            ptr.offset(dst_offset as isize + 2)
+            ptr.add(dst_offset + 2)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c2)));
-            ptr.offset(dst_offset as isize + 3)
+            ptr.add(dst_offset + 3)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c3)));
-            ptr.offset(dst_offset as isize + 4)
+            ptr.add(dst_offset + 4)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c4)));
-            ptr.offset(dst_offset as isize + 5)
+            ptr.add(dst_offset + 5)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c5)));
-            ptr.offset(dst_offset as isize + 6)
+            ptr.add(dst_offset + 6)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c6)));
-            ptr.offset(dst_offset as isize + 7)
+            ptr.add(dst_offset + 7)
                 .write(ptr::read_unaligned(alphabet_ptr.add(c7)));
         }
 

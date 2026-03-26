@@ -25,12 +25,11 @@ pub fn encode_full_group_into(
         let ptr = dst.as_mut_ptr();
 
         unsafe {
-            ptr.offset(dst_offset as isize)
+            ptr.add(dst_offset)
                 .write(ptr::read_unaligned(alphabet_ptr.add((byte >> 4) as usize)));
-            ptr.offset(dst_offset as isize + 1)
-                .write(ptr::read_unaligned(
-                    alphabet_ptr.add((byte & 0x0F) as usize),
-                ));
+            ptr.add(dst_offset + 1).write(ptr::read_unaligned(
+                alphabet_ptr.add((byte & 0x0F) as usize),
+            ));
         }
 
         src_offset += 1;
