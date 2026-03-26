@@ -1,3 +1,4 @@
+#[derive(PartialEq, Eq, Hash)]
 pub struct Base64DecodeOutput {
     pub inner: Vec<u8>,
 }
