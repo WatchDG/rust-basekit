@@ -30,9 +30,8 @@ pub(crate) unsafe fn decode_full_groups_into(
     config: &Base64DecodeConfig,
     dst: &mut [u8],
     src: &[u8],
-    full_groups: usize,
 ) -> Result<usize, Base64Error> {
-    if full_groups == 0 {
+    if src.len() < 4 {
         return Ok(0);
     }
 
@@ -66,7 +65,7 @@ pub(crate) unsafe fn decode_full_groups_into(
         feature = "simd-avx2"
     ))]
     if is_available_feature_simd_avx2() {
-        let avx2_src_bytes = (full_groups / 8) * 32;
+        let avx2_src_bytes = (src.len() / 32) * 32;
         if avx2_src_bytes > 0 {
             let avx2_dst_bytes = avx2_src_bytes / 4 * 3;
             dst_offset += unsafe {
@@ -85,8 +84,7 @@ pub(crate) unsafe fn decode_full_groups_into(
         feature = "simd-ssse3"
     ))]
     if is_available_feature_simd_ssse3() {
-        let remaining_groups = full_groups - src_offset / 4;
-        let ssse3_src_bytes = (remaining_groups / 4) * 16;
+        let ssse3_src_bytes = ((src.len() - src_offset) / 16) * 16;
         if ssse3_src_bytes > 0 {
             let ssse3_dst_bytes = ssse3_src_bytes / 4 * 3;
             dst_offset += unsafe {
@@ -100,7 +98,7 @@ pub(crate) unsafe fn decode_full_groups_into(
         }
     }
 
-    for src_offset in (src_offset..full_groups * 4).step_by(4) {
+    for src_offset in (src_offset..src.len()).step_by(4) {
         let src_chunk = &src[src_offset..src_offset + 4];
         dst_offset +=
             decode_full_group_into(config, &mut dst[dst_offset..], src_chunk, src_offset)?;

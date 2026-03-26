@@ -47,7 +47,7 @@ pub fn decode_into(
     unsafe {
         let mut dst_offset = 0usize;
 
-        dst_offset += decode_full_groups_into(config, dst, src, full_groups)?;
+        dst_offset += decode_full_groups_into(config, dst, &src[..full_groups * 4])?;
 
         if has_tail {
             let i = full_groups * 4;
