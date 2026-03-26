@@ -262,7 +262,7 @@ fn test_consistency_with_decode() {
     let config = create_config();
     let data = b"SGVsbG8gV29ybGQh"; // "Hello World!" encoded without padding
 
-    let result = decode(&config, data).unwrap();
+    let result = Vec::<u8>::from(decode(&config, data).unwrap());
 
     let mut dst = vec![0u8; data.len()];
     let len = decode_into(&config, &mut dst, data).unwrap();

@@ -1,10 +1,11 @@
 use super::super::config::Base32DecodeConfig;
 use super::super::error::Base32Error;
 use super::decode_into::decode_into;
+use super::output::Base32DecodeOutput;
 
-pub fn decode(config: &Base32DecodeConfig, data: &[u8]) -> Result<Vec<u8>, Base32Error> {
+pub fn decode(config: &Base32DecodeConfig, data: &[u8]) -> Result<Base32DecodeOutput, Base32Error> {
     if data.is_empty() {
-        return Ok(Vec::new());
+        return Ok(Base32DecodeOutput { inner: Vec::new() });
     }
 
     let mut padding_count = 0;
@@ -23,11 +24,11 @@ pub fn decode(config: &Base32DecodeConfig, data: &[u8]) -> Result<Vec<u8>, Base3
     let clean_len = data.len() - padding_count;
 
     if clean_len == 0 {
-        return Ok(Vec::new());
+        return Ok(Base32DecodeOutput { inner: Vec::new() });
     }
 
     let output_len = (clean_len * 5) / 8;
-    let mut output = vec![0u8; output_len];
-    let _ = decode_into(config, &mut output, data)?;
-    Ok(output)
+    let mut inner = vec![0u8; output_len];
+    let _ = decode_into(config, &mut inner, data)?;
+    Ok(Base32DecodeOutput { inner })
 }

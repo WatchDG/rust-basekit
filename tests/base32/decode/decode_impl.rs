@@ -8,63 +8,66 @@ fn create_config() -> Base32DecodeConfig {
 fn test_empty() {
     let config = create_config();
     let result = decode(&config, b"");
-    assert_eq!(result.unwrap(), b"");
+    assert_eq!(Vec::<u8>::from(result.unwrap()), b"");
 }
 
 #[test]
 fn test_single_byte() {
     let config = create_config();
     let result = decode(&config, b"MY======");
-    assert_eq!(result.unwrap(), &[102u8]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[102u8]);
 }
 
 #[test]
 fn test_two_bytes() {
     let config = create_config();
     let result = decode(&config, b"MZXQ====");
-    assert_eq!(result.unwrap(), &[102, 111]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[102, 111]);
 }
 
 #[test]
 fn test_three_bytes() {
     let config = create_config();
     let result = decode(&config, b"MZXW6===");
-    assert_eq!(result.unwrap(), &[102, 111, 111]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[102, 111, 111]);
 }
 
 #[test]
 fn test_four_bytes() {
     let config = create_config();
     let result = decode(&config, b"MZXW6YQ=");
-    assert_eq!(result.unwrap(), &[102, 111, 111, 98]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[102, 111, 111, 98]);
 }
 
 #[test]
 fn test_five_bytes() {
     let config = create_config();
     let result = decode(&config, b"MZXW6YTB");
-    assert_eq!(result.unwrap(), &[102, 111, 111, 98, 97]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[102, 111, 111, 98, 97]);
 }
 
 #[test]
 fn test_foo_bar() {
     let config = create_config();
     let result = decode(&config, b"MZXW6IDCMFZA====");
-    assert_eq!(result.unwrap(), b"foo bar");
+    assert_eq!(Vec::<u8>::from(result.unwrap()), b"foo bar");
 }
 
 #[test]
 fn test_all_zeros() {
     let config = create_config();
     let result = decode(&config, b"AAAAAAAA");
-    assert_eq!(result.unwrap(), &[0, 0, 0, 0, 0]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[0, 0, 0, 0, 0]);
 }
 
 #[test]
 fn test_all_ones() {
     let config = create_config();
     let result = decode(&config, b"77777777");
-    assert_eq!(result.unwrap(), &[0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
+    assert_eq!(
+        Vec::<u8>::from(result.unwrap()),
+        &[0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+    );
 }
 
 #[test]
@@ -120,7 +123,7 @@ fn test_round_trip_hello() {
 
     let original = b"Hello, World!";
     let encoded = encode(&encode_config, original);
-    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
+    let decoded = Vec::<u8>::from(decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap());
     assert_eq!(decoded, original);
 }
 
@@ -132,6 +135,6 @@ fn test_round_trip_random() {
 
     let data: Vec<u8> = (0..1000).map(|i| (i * 17 % 256) as u8).collect();
     let encoded = encode(&encode_config, &data);
-    let decoded = decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap();
+    let decoded = Vec::<u8>::from(decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap());
     assert_eq!(decoded, data);
 }

@@ -1,10 +1,11 @@
 use super::super::config::Base16DecodeConfig;
 use super::super::error::Base16Error;
 use super::decode_into::decode_into;
+use super::output::Base16DecodeOutput;
 
-pub fn decode(config: &Base16DecodeConfig, data: &[u8]) -> Result<Vec<u8>, Base16Error> {
+pub fn decode(config: &Base16DecodeConfig, data: &[u8]) -> Result<Base16DecodeOutput, Base16Error> {
     if data.is_empty() {
-        return Ok(Vec::new());
+        return Ok(Base16DecodeOutput { inner: Vec::new() });
     }
 
     if !data.len().is_multiple_of(2) {
@@ -12,7 +13,7 @@ pub fn decode(config: &Base16DecodeConfig, data: &[u8]) -> Result<Vec<u8>, Base1
     }
 
     let output_len = data.len() / 2;
-    let mut output = vec![0u8; output_len];
-    let _ = decode_into(config, &mut output, data)?;
-    Ok(output)
+    let mut inner = vec![0u8; output_len];
+    let _ = decode_into(config, &mut inner, data)?;
+    Ok(Base16DecodeOutput { inner })
 }

@@ -31,7 +31,8 @@ let encoded_str = String::try_from(encoded).unwrap();
 println!("Encoded: {}", encoded_str);
 
 let decoded = decode(&decode_config, encoded_str.as_bytes()).unwrap();
-println!("Decoded: {}", String::from_utf8_lossy(&decoded));
+let decoded_str = String::try_from(decoded).unwrap();
+println!("Decoded: {}", decoded_str);
 ```
 
 ### Base32
@@ -52,7 +53,8 @@ let encoded_str = String::try_from(encoded).unwrap();
 println!("Encoded: {}", encoded_str);
 
 let decoded = decode(&decode_config, encoded_str.as_bytes()).unwrap();
-println!("Decoded: {}", String::from_utf8_lossy(&decoded));
+let decoded_str = String::try_from(decoded).unwrap();
+println!("Decoded: {}", decoded_str);
 ```
 
 ### Base64
@@ -73,7 +75,8 @@ let encoded_str = String::try_from(encoded).unwrap();
 println!("Encoded: {}", encoded_str);
 
 let decoded = decode(&decode_config, encoded_str.as_bytes()).unwrap();
-println!("Decoded: {}", String::from_utf8_lossy(&decoded));
+let decoded_str = String::try_from(decoded).unwrap();
+println!("Decoded: {}", decoded_str);
 ```
 
 ### URL-safe Base64
@@ -94,7 +97,8 @@ let encoded_str = String::try_from(encoded).unwrap();
 println!("Encoded: {}", encoded_str);
 
 let decoded = decode(&decode_config, encoded_str.as_bytes()).unwrap();
-println!("Decoded: {}", String::from_utf8_lossy(&decoded));
+let decoded_str = String::try_from(decoded).unwrap();
+println!("Decoded: {}", decoded_str);
 ```
 
 ## Documentation

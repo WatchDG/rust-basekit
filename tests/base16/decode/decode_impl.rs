@@ -15,70 +15,70 @@ fn create_config_uppercase() -> Base16DecodeConfig {
 fn test_empty() {
     let config = create_config();
     let result = decode(&config, b"");
-    assert_eq!(result.unwrap(), b"");
+    assert_eq!(Vec::<u8>::from(result.unwrap()), b"");
 }
 
 #[test]
 fn test_single_byte_zero() {
     let config = create_config();
     let result = decode(&config, b"00");
-    assert_eq!(result.unwrap(), &[0x00]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[0x00]);
 }
 
 #[test]
 fn test_single_byte_all_ones() {
     let config = create_config_uppercase();
     let result = decode(&config, b"FF");
-    assert_eq!(result.unwrap(), &[0xFF]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[0xFF]);
 }
 
 #[test]
 fn test_two_bytes() {
     let config = create_config_uppercase();
     let result = decode(&config, b"0AFF");
-    assert_eq!(result.unwrap(), &[0x0A, 0xFF]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[0x0A, 0xFF]);
 }
 
 #[test]
 fn test_three_bytes() {
     let config = create_config();
     let result = decode(&config, b"010203");
-    assert_eq!(result.unwrap(), &[0x01, 0x02, 0x03]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[0x01, 0x02, 0x03]);
 }
 
 #[test]
 fn test_four_bytes() {
     let config = create_config_uppercase();
     let result = decode(&config, b"DEADBEEF");
-    assert_eq!(result.unwrap(), &[0xDE, 0xAD, 0xBE, 0xEF]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[0xDE, 0xAD, 0xBE, 0xEF]);
 }
 
 #[test]
 fn test_hello() {
     let config = create_config_uppercase();
     let result = decode(&config, b"48656C6C6F");
-    assert_eq!(result.unwrap(), b"Hello");
+    assert_eq!(Vec::<u8>::from(result.unwrap()), b"Hello");
 }
 
 #[test]
 fn test_all_zeros() {
     let config = create_config();
     let result = decode(&config, b"00000000");
-    assert_eq!(result.unwrap(), &[0, 0, 0, 0]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[0, 0, 0, 0]);
 }
 
 #[test]
 fn test_all_ones() {
     let config = create_config_uppercase();
     let result = decode(&config, b"FFFFFFFF");
-    assert_eq!(result.unwrap(), &[0xFF, 0xFF, 0xFF, 0xFF]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[0xFF, 0xFF, 0xFF, 0xFF]);
 }
 
 #[test]
 fn test_lowercase_decode_table() {
     let config = create_config();
     let result = decode(&config, b"deadbeef");
-    assert_eq!(result.unwrap(), &[0xDE, 0xAD, 0xBE, 0xEF]);
+    assert_eq!(Vec::<u8>::from(result.unwrap()), &[0xDE, 0xAD, 0xBE, 0xEF]);
 }
 
 #[test]
