@@ -47,8 +47,7 @@ pub(crate) unsafe fn avx2_decode_full_groups_into(
                     config,
                     &src[src_offset + group_offset..src_offset + group_offset + 4],
                     src_offset + group_offset,
-                    dst,
-                    dst_offset + written,
+                    &mut dst[dst_offset + written..],
                 )?;
             }
             dst_offset += written;
@@ -97,8 +96,7 @@ pub(crate) unsafe fn avx2_decode_full_groups_into(
                     config,
                     &src[src_offset + group_offset..src_offset + group_offset + 4],
                     src_offset + group_offset,
-                    dst,
-                    dst_offset + written,
+                    &mut dst[dst_offset + written..],
                 )?;
             }
             dst_offset += written;

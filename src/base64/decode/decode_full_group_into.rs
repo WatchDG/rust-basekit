@@ -2,13 +2,11 @@ use crate::base64::config::Base64DecodeConfig;
 use crate::base64::error::Base64Error;
 
 #[inline(always)]
-#[allow(unsafe_op_in_unsafe_fn)]
-pub(crate) unsafe fn decode_full_group_into(
+pub(crate) fn decode_full_group_into(
     config: &Base64DecodeConfig,
     chunk: &[u8],
     chunk_start: usize,
     dst: &mut [u8],
-    dst_offset: usize,
 ) -> Result<usize, Base64Error> {
     debug_assert_eq!(chunk.len(), 4);
 
@@ -56,10 +54,9 @@ pub(crate) unsafe fn decode_full_group_into(
 
     let triple = ((i0 as u32) << 18) | ((i1 as u32) << 12) | ((i2 as u32) << 6) | (i3 as u32);
 
-    let ptr = dst.as_mut_ptr().add(dst_offset);
-    ptr.write((triple >> 16) as u8);
-    ptr.add(1).write((triple >> 8) as u8);
-    ptr.add(2).write(triple as u8);
+    dst[0] = (triple >> 16) as u8;
+    dst[1] = (triple >> 8) as u8;
+    dst[2] = triple as u8;
 
     Ok(3)
 }
