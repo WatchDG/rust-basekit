@@ -67,9 +67,10 @@ let decode_config = Base64DecodeConfig::new(DECODE_TABLE_BASE64, PADDING_BASE64)
 
 let data = b"Hello, World!";
 let encoded = encode(&encode_config, data);
-println!("Encoded: {}", String::from_utf8_lossy(&encoded));
+let encoded_str = String::from(encoded);
+println!("Encoded: {}", encoded_str);
 
-let decoded = decode(&decode_config, &encoded).unwrap();
+let decoded = decode(&decode_config, encoded_str.as_bytes()).unwrap();
 println!("Decoded: {}", String::from_utf8_lossy(&decoded));
 ```
 
@@ -87,7 +88,8 @@ let decode_config = Base64DecodeConfig::new(DECODE_TABLE_BASE64_URL, PADDING_BAS
 
 let data = b"Hello, World!";
 let encoded = encode(&encode_config, data);
-let decoded = decode(&decode_config, &encoded).unwrap();
+let encoded_vec = Vec::<u8>::from(encoded);
+let decoded = decode(&decode_config, &encoded_vec).unwrap();
 ```
 
 ## Documentation

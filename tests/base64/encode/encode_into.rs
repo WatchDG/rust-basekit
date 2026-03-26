@@ -142,10 +142,11 @@ fn test_consistency_with_encode() {
     let data = b"Hello, World! The quick brown fox jumps over the lazy dog.";
 
     let result = encode(&config, data);
+    let result_vec: Vec<u8> = result.into();
 
     let mut dst = vec![0u8; data.len() / 3 * 4 + 10];
     let len = encode_into(&config, &mut dst, data).unwrap();
 
-    assert_eq!(len, result.len());
-    assert_eq!(&dst[..len], &result[..]);
+    assert_eq!(len, result_vec.len());
+    assert_eq!(&dst[..len], &result_vec[..]);
 }

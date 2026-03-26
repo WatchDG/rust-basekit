@@ -1,9 +1,10 @@
 use super::super::config::Base64EncodeConfig;
 use super::encode_into::encode_into;
+use super::output::Base64EncodeOutput;
 
-pub fn encode(config: &Base64EncodeConfig, data: &[u8]) -> Vec<u8> {
+pub fn encode(config: &Base64EncodeConfig, data: &[u8]) -> Base64EncodeOutput {
     if data.is_empty() {
-        return Vec::new();
+        return Base64EncodeOutput { inner: Vec::new() };
     }
 
     let full_chunks = data.len() / 3;
@@ -18,5 +19,5 @@ pub fn encode(config: &Base64EncodeConfig, data: &[u8]) -> Vec<u8> {
 
     let mut output = vec![0u8; output_len];
     let _ = encode_into(config, &mut output, data).unwrap();
-    output
+    Base64EncodeOutput { inner: output }
 }
