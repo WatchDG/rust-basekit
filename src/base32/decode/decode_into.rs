@@ -50,7 +50,13 @@ pub fn decode_into(
 
     if has_tail {
         let tail_src = &src[full_groups * 8..core::cmp::min(full_groups * 8 + 8, src.len())];
-        dst_offset += decode_tail_into(config, &mut dst[dst_offset..], tail_src, full_groups * 8, padding_count)?;
+        dst_offset += decode_tail_into(
+            config,
+            &mut dst[dst_offset..],
+            tail_src,
+            full_groups * 8,
+            padding_count,
+        )?;
     }
 
     Ok(dst_offset)

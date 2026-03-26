@@ -30,6 +30,7 @@ pub(crate) fn ssse3_encode_full_groups_into(
     Ok(dst_offset)
 }
 
+#[allow(clippy::doc_overindented_list_items)]
 /// Encodes 12 src bytes into 16 base64 characters using the provided alphabet.
 ///
 /// The 12 bytes form 4 complete triples; there is no padding.

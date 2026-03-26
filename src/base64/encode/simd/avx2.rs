@@ -30,6 +30,7 @@ pub(crate) fn avx2_encode_full_groups_into(
     Ok(dst_offset)
 }
 
+#[allow(clippy::doc_overindented_list_items)]
 /// Encodes 24 src bytes into 32 base64 characters using the provided alphabet.
 ///
 /// The 24 bytes form 8 complete triples; there is no padding.
