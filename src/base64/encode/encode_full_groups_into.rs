@@ -3,11 +3,11 @@ use super::super::error::Base64Error;
 use super::encode_full_group_into;
 
 #[cfg(feature = "simd-avx2")]
-use crate::cpu::has_avx2;
+use crate::cpu_features::is_available_feature_simd_avx2;
 #[cfg(feature = "simd-avx512")]
-use crate::cpu::has_avx512f;
+use crate::cpu_features::is_available_feature_simd_avx512;
 #[cfg(feature = "simd-ssse3")]
-use crate::cpu::has_ssse3;
+use crate::cpu_features::is_available_feature_simd_ssse3;
 
 #[cfg(feature = "simd-avx2")]
 use super::simd::avx2::avx2_encode_full_groups_into;
@@ -30,12 +30,8 @@ pub fn encode_full_groups_into(
     let src_offset = 0usize;
 
     #[cfg(feature = "simd-avx512")]
-    if has_avx512f() {
-        let avx512_groups = if src.len() >= 96 {
-            (src.len() - 48) / 48
-        } else {
-            0
-        };
+    if is_available_feature_simd_avx512() {
+        let avx512_groups = src.len() / 48;
         let avx512_bytes = avx512_groups * 48;
 
         if avx512_bytes > 0 {
@@ -51,13 +47,9 @@ pub fn encode_full_groups_into(
     }
 
     #[cfg(feature = "simd-avx2")]
-    if has_avx2() {
+    if is_available_feature_simd_avx2() {
         let remaining = &src[src_offset..];
-        let avx2_groups = if remaining.len() >= 48 {
-            (remaining.len() - 24) / 24
-        } else {
-            0
-        };
+        let avx2_groups = remaining.len() / 24;
         let avx2_bytes = avx2_groups * 24;
 
         if avx2_bytes > 0 {
@@ -73,13 +65,9 @@ pub fn encode_full_groups_into(
     }
 
     #[cfg(feature = "simd-ssse3")]
-    if has_ssse3() {
+    if is_available_feature_simd_ssse3() {
         let remaining = &src[src_offset..];
-        let ssse3_groups = if remaining.len() >= 24 {
-            remaining.len() / 12 - 1
-        } else {
-            0
-        };
+        let ssse3_groups = remaining.len() / 12;
         let ssse3_bytes = ssse3_groups * 12;
 
         if ssse3_bytes > 0 {

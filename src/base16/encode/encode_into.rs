@@ -1,14 +1,13 @@
-use core::ptr;
-
 use super::super::config::Base16EncodeConfig;
 use super::super::error::Base16Error;
+use super::encode_full_group_into::encode_full_group_into;
 
 #[cfg(feature = "simd-avx2")]
-use crate::cpu::has_avx2;
+use crate::cpu_features::is_available_feature_simd_avx2;
 #[cfg(feature = "simd-avx512")]
-use crate::cpu::has_avx512f;
+use crate::cpu_features::is_available_feature_simd_avx512;
 #[cfg(feature = "simd-ssse3")]
-use crate::cpu::has_ssse3;
+use crate::cpu_features::is_available_feature_simd_ssse3;
 
 #[cfg(feature = "simd-avx2")]
 use super::simd::avx2::avx2_encode_into;
@@ -40,7 +39,7 @@ pub fn encode_into(
     let mut dst_offset = 0usize;
 
     #[cfg(feature = "simd-avx512")]
-    if has_avx512f() {
+    if is_available_feature_simd_avx512() {
         let written =
             unsafe { avx512_encode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
         src_offset += written / 2;
@@ -48,7 +47,7 @@ pub fn encode_into(
     }
 
     #[cfg(feature = "simd-avx2")]
-    if has_avx2() {
+    if is_available_feature_simd_avx2() {
         let written =
             unsafe { avx2_encode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
         src_offset += written / 2;
@@ -56,29 +55,15 @@ pub fn encode_into(
     }
 
     #[cfg(feature = "simd-ssse3")]
-    if has_ssse3() {
+    if is_available_feature_simd_ssse3() {
         let written =
             unsafe { ssse3_encode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
         src_offset += written / 2;
         dst_offset += written;
     }
 
-    let alphabet_ptr = config.alphabet.as_ptr();
+    dst_offset +=
+        unsafe { encode_full_group_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
 
-    unsafe {
-        while src_offset < src.len() {
-            let byte = src[src_offset];
-            let ptr = dst.as_mut_ptr().add(dst_offset);
-
-            ptr.write(ptr::read_unaligned(alphabet_ptr.add((byte >> 4) as usize)));
-            ptr.offset(1).write(ptr::read_unaligned(
-                alphabet_ptr.add((byte & 0x0F) as usize),
-            ));
-
-            src_offset += 1;
-            dst_offset += 2;
-        }
-
-        Ok(output_len)
-    }
+    Ok(output_len)
 }

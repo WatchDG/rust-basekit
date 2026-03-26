@@ -3,9 +3,9 @@ use crate::base64::config::Base64DecodeConfig;
 use crate::base64::error::Base64Error;
 
 #[cfg(feature = "simd-avx2")]
-use crate::cpu::has_avx2;
+use crate::cpu_features::is_available_feature_simd_avx2;
 #[cfg(feature = "simd-ssse3")]
-use crate::cpu::has_ssse3;
+use crate::cpu_features::is_available_feature_simd_ssse3;
 
 #[cfg(feature = "simd-avx2")]
 use super::simd::avx2::avx2_decode_full_groups_into;
@@ -32,7 +32,7 @@ pub(crate) unsafe fn decode_full_groups_into(
     let src_offset = 0usize;
 
     #[cfg(feature = "simd-avx2")]
-    if has_avx2() {
+    if is_available_feature_simd_avx2() {
         let avx2_src_bytes = (full_groups / 8) * 32;
         if avx2_src_bytes > 0 {
             let avx2_dst_bytes = avx2_src_bytes / 4 * 3;
@@ -48,7 +48,7 @@ pub(crate) unsafe fn decode_full_groups_into(
     }
 
     #[cfg(feature = "simd-ssse3")]
-    if has_ssse3() {
+    if is_available_feature_simd_ssse3() {
         let remaining_groups = full_groups - src_offset / 4;
         let ssse3_src_bytes = (remaining_groups / 4) * 16;
         if ssse3_src_bytes > 0 {

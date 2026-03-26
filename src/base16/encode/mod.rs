@@ -1,3 +1,4 @@
+pub mod encode_full_group_into;
 pub mod encode_impl;
 pub mod encode_into;
 pub mod simd;
