@@ -4,16 +4,16 @@ use crate::base64::error::Base64Error;
 #[inline(always)]
 pub(crate) fn decode_full_group_into(
     config: &Base64DecodeConfig,
-    chunk: &[u8],
-    chunk_start: usize,
     dst: &mut [u8],
+    src: &[u8],
+    chunk_start: usize,
 ) -> Result<usize, Base64Error> {
-    debug_assert_eq!(chunk.len(), 4);
+    debug_assert_eq!(src.len(), 4);
 
-    let b0 = chunk[0];
-    let b1 = chunk[1];
-    let b2 = chunk[2];
-    let b3 = chunk[3];
+    let b0 = src[0];
+    let b1 = src[1];
+    let b2 = src[2];
+    let b3 = src[3];
 
     if b0 == config.padding || b1 == config.padding || b2 == config.padding || b3 == config.padding
     {
@@ -30,7 +30,7 @@ pub(crate) fn decode_full_group_into(
         } else {
             3
         };
-        return Err(Base64Error::InvalidCharacter(chunk[pos], chunk_start + pos));
+        return Err(Base64Error::InvalidCharacter(src[pos], chunk_start + pos));
     }
 
     let decode_table = config.decode_table;
@@ -49,7 +49,7 @@ pub(crate) fn decode_full_group_into(
         } else {
             3
         };
-        return Err(Base64Error::InvalidCharacter(chunk[pos], chunk_start + pos));
+        return Err(Base64Error::InvalidCharacter(src[pos], chunk_start + pos));
     }
 
     let triple = ((i0 as u32) << 18) | ((i1 as u32) << 12) | ((i2 as u32) << 6) | (i3 as u32);
