@@ -92,7 +92,7 @@ pub fn encode_into(
     }
 
     for chunk in src[src_offset..].chunks_exact(1) {
-        dst_offset += unsafe { encode_full_group_into(config, &mut dst[dst_offset..], chunk) };
+        dst_offset += encode_full_group_into(config, &mut dst[dst_offset..], chunk)?;
     }
 
     Ok(output_len)
