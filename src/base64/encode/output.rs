@@ -8,8 +8,10 @@ impl From<Base64EncodeOutput> for Vec<u8> {
     }
 }
 
-impl From<Base64EncodeOutput> for String {
-    fn from(value: Base64EncodeOutput) -> Self {
-        String::from_utf8(value.inner).expect("Base64 output is valid UTF-8")
+impl TryFrom<Base64EncodeOutput> for String {
+    type Error = std::string::FromUtf8Error;
+
+    fn try_from(value: Base64EncodeOutput) -> Result<Self, Self::Error> {
+        String::from_utf8(value.inner)
     }
 }

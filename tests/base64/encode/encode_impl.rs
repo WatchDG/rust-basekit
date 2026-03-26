@@ -92,26 +92,26 @@ fn test_1mb_random() {
 fn test_empty_to_string() {
     let config = create_config();
     let result = encode(&config, &[]);
-    assert_eq!(String::from(result), "");
+    assert_eq!(String::try_from(result).unwrap(), "");
 }
 
 #[test]
 fn test_single_byte_to_string() {
     let config = create_config();
     let result = encode(&config, &[102]);
-    assert_eq!(String::from(result), "Zg==");
+    assert_eq!(String::try_from(result).unwrap(), "Zg==");
 }
 
 #[test]
 fn test_hello_to_string() {
     let config = create_config();
     let result = encode(&config, b"Hello");
-    assert_eq!(String::from(result), "SGVsbG8=");
+    assert_eq!(String::try_from(result).unwrap(), "SGVsbG8=");
 }
 
 #[test]
 fn test_world_to_string() {
     let config = create_config();
     let result = encode(&config, b"World");
-    assert_eq!(String::from(result), "V29ybGQ=");
+    assert_eq!(String::try_from(result).unwrap(), "V29ybGQ=");
 }
