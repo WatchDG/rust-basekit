@@ -47,7 +47,7 @@ pub fn encode_into(
     if tail_len > 0 {
         dst_offset += encode_tail_into(
             config,
-            &mut dst[dst_offset..][..tail_output_len],
+            &mut dst[dst_offset..dst_offset + tail_output_len],
             &src[full_groups * 3..],
         )?;
     }
