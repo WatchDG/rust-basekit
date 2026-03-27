@@ -54,7 +54,7 @@ pub fn decode_into_benchmarks(c: &mut Criterion) {
         let decode_config = create_decode_config();
         let original: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
         let encoded = encode(&encode_config, &original);
-        let mut dst = vec![0u8; encoded.len()];
+        let mut dst = vec![0u8; encoded.as_ref().len()];
         b.iter(|| {
             let len = decode_into(
                 black_box(&decode_config),
@@ -72,7 +72,7 @@ pub fn decode_into_benchmarks(c: &mut Criterion) {
         let decode_config = create_decode_config();
         let original: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
         let encoded = encode(&encode_config, &original);
-        let mut dst = vec![0u8; encoded.len()];
+        let mut dst = vec![0u8; encoded.as_ref().len()];
         b.iter(|| {
             let len = decode_into(
                 black_box(&decode_config),
