@@ -4,11 +4,19 @@ This directory contains performance benchmarks for basekit encoding/decoding fun
 
 ## Structure
 
-- `base16/` — Base16 (hex) benchmarks
-- `base32/` — Base32 benchmarks
-- `base64/` — Base64 benchmarks
-- `*/encode_into_bench/` — Standalone benchmarks for `encode_into` with variable input sizes
-- `*/decode_into_bench/` — Standalone benchmarks for `decode_into` with variable input sizes
+```
+benches/
+├── README.md
+├── base16/
+│   ├── encode_into_bench/
+│   └── decode_into_bench/
+├── base32/
+│   ├── encode_into_bench/
+│   └── decode_into_bench/
+└── base64/
+    ├── encode_into_bench/
+    └── decode_into_bench/
+```
 
 ## Input Sizes
 
