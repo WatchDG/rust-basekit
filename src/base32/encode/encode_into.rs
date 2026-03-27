@@ -7,9 +7,10 @@ pub use super::encode_tail_into::encode_tail_into;
 #[inline(always)]
 pub fn encode_into(
     config: &Base32EncodeConfig,
-    dst: &mut [u8],
-    src: &[u8],
+    mut dst: impl AsMut<[u8]>,
+    src: impl AsRef<[u8]>,
 ) -> Result<usize, Base32Error> {
+    let src = src.as_ref();
     if src.is_empty() {
         return Ok(0);
     }
@@ -26,6 +27,7 @@ pub fn encode_into(
             _ => unreachable!(),
         };
 
+    let dst = dst.as_mut();
     if dst.len() < output_len {
         return Err(Base32Error::DestinationBufferTooSmall {
             needed: output_len,
