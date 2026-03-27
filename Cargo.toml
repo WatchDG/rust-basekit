@@ -19,7 +19,7 @@ simd-avx512  = []
 [dependencies]
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.8"
 
 [profile.bench]
 inherits = "release"

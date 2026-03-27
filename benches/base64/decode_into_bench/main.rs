@@ -3,6 +3,7 @@ use basekit::base64::{
     encode_into,
 };
 use criterion::{BenchmarkId, Criterion, Throughput};
+use std::hint::black_box;
 
 fn create_encode_config() -> Base64EncodeConfig {
     Base64EncodeConfig::new(ALPHABET_BASE64, b'=')
@@ -38,19 +39,18 @@ fn main() {
             let mut dst = vec![0u8; size];
 
             b.iter(|| {
-                let len = criterion::black_box(
+                let len = black_box(
                     decode_into(
-                        criterion::black_box(&decode_config),
-                        criterion::black_box(&mut dst),
-                        criterion::black_box(&encoded),
+                        black_box(&decode_config),
+                        black_box(&mut dst),
+                        black_box(&encoded),
                     )
                     .unwrap(),
                 );
-                criterion::black_box(len);
+                black_box(len);
             });
         });
     }
 
     group.finish();
-    c.final_summary();
 }
