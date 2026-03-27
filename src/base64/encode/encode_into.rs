@@ -4,7 +4,7 @@ use super::super::error::Base64Error;
 pub(crate) use super::encode_full_groups_into;
 pub use super::encode_tail_into;
 
-#[inline(always)]
+#[inline]
 pub fn encode_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],

@@ -2,6 +2,7 @@ use super::super::config::Base64EncodeConfig;
 use super::encode_into::encode_into;
 use super::output::Base64EncodeOutput;
 
+#[inline]
 pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64EncodeOutput {
     let data = data.as_ref();
     if data.is_empty() {
