@@ -3,6 +3,7 @@ use super::super::error::Base64Error;
 use super::decode_into::decode_into;
 use super::output::Base64DecodeOutput;
 
+#[inline]
 pub fn decode(
     config: &Base64DecodeConfig,
     data: impl AsRef<[u8]>,
@@ -14,7 +15,7 @@ pub fn decode(
 
     let mut padding_count = 0;
     for &byte in data.iter().rev() {
-        if byte == config.padding {
+        if config.padding == Some(byte) {
             padding_count += 1;
         } else {
             break;

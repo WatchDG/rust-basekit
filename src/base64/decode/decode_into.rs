@@ -3,7 +3,7 @@ use super::super::error::Base64Error;
 use super::decode_full_groups_into::decode_full_groups_into;
 use super::decode_tail_into::decode_tail_into;
 
-#[inline(always)]
+#[inline]
 pub fn decode_into(
     config: &Base64DecodeConfig,
     mut dst: impl AsMut<[u8]>,
@@ -16,7 +16,7 @@ pub fn decode_into(
 
     let mut padding_count = 0;
     for &byte in src.iter().rev().take(3) {
-        if byte == config.padding {
+        if config.padding == Some(byte) {
             padding_count += 1;
         } else {
             break;

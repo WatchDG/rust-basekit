@@ -11,11 +11,11 @@ impl Base64EncodeConfig {
 
 pub struct Base64DecodeConfig {
     pub decode_table: &'static [i8; 128],
-    pub padding: u8,
+    pub padding: Option<u8>,
 }
 
 impl Base64DecodeConfig {
-    pub fn new(decode_table: &'static [i8; 128], padding: u8) -> Self {
+    pub fn new(decode_table: &'static [i8; 128], padding: Option<u8>) -> Self {
         Self {
             decode_table,
             padding,

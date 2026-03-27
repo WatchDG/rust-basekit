@@ -15,7 +15,7 @@ pub(crate) unsafe fn decode_tail_into(
     for (j, &byte) in chunk.iter().enumerate() {
         let pos = chunk_start + j;
 
-        if byte == config.padding {
+        if config.padding == Some(byte) {
             let expected_min_pos = 4 - padding_count;
             if j < expected_min_pos {
                 return Err(Base64Error::InvalidPadding);

@@ -1,7 +1,7 @@
 use basekit::base64::{Base64DecodeConfig, Base64Error, DECODE_TABLE_BASE64, decode};
 
 fn create_config() -> Base64DecodeConfig {
-    Base64DecodeConfig::new(DECODE_TABLE_BASE64, b'=')
+    Base64DecodeConfig::new(DECODE_TABLE_BASE64, Some(b'='))
 }
 
 #[test]

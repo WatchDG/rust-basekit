@@ -8,7 +8,7 @@ fn create_encode_config() -> Base64EncodeConfig {
 }
 
 fn create_decode_config() -> Base64DecodeConfig {
-    Base64DecodeConfig::new(DECODE_TABLE_BASE64, b'=')
+    Base64DecodeConfig::new(DECODE_TABLE_BASE64, Some(b'='))
 }
 
 fn roundtrip(original: &[u8]) {
