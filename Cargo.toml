@@ -24,3 +24,8 @@ criterion = "0.5"
 [[bench]]
 name = "mod"
 harness = false
+
+[[bench]]
+name = "base64_encode_into_bench"
+path = "benches/base64/encode_into_bench/main.rs"
+harness = false
