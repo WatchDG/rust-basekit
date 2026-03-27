@@ -102,7 +102,7 @@ pub(crate) fn encode_full_groups_into(
         let avx2_groups = remaining.len() / 24;
         let avx2_bytes = avx2_groups * 24;
 
-        if avx2_bytes > 0 {
+        if avx2_groups >= 2 {
             dst_offset += unsafe {
                 avx2_encode_full_groups_into(
                     config,

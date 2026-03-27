@@ -1,4 +1,7 @@
-use basekit::base16::{encode_into, decode_into, ALPHABET_BASE16_LOWERCASE, DECODE_TABLE_BASE16_LOWERCASE, Base16EncodeConfig, Base16DecodeConfig};
+use basekit::base16::{
+    ALPHABET_BASE16_LOWERCASE, Base16DecodeConfig, Base16EncodeConfig,
+    DECODE_TABLE_BASE16_LOWERCASE, decode_into, encode_into,
+};
 use criterion::{BenchmarkId, Criterion, Throughput};
 
 fn create_encode_config() -> Base16EncodeConfig {
@@ -17,9 +20,7 @@ fn main() {
     let mut group = c.benchmark_group("base16_decode_into");
 
     let small_sizes = [8, 16, 32, 64, 128, 256, 512, 1024];
-    let large_sizes = [
-        1024 * 1024,
-    ];
+    let large_sizes = [1024 * 1024];
 
     for size in small_sizes.iter().chain(large_sizes.iter()) {
         let size = *size;

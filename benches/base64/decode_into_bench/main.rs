@@ -1,4 +1,7 @@
-use basekit::base64::{encode_into, decode_into, ALPHABET_BASE64, DECODE_TABLE_BASE64, Base64EncodeConfig, Base64DecodeConfig};
+use basekit::base64::{
+    ALPHABET_BASE64, Base64DecodeConfig, Base64EncodeConfig, DECODE_TABLE_BASE64, decode_into,
+    encode_into,
+};
 use criterion::{BenchmarkId, Criterion, Throughput};
 
 fn create_encode_config() -> Base64EncodeConfig {
@@ -17,9 +20,7 @@ fn main() {
     let mut group = c.benchmark_group("base64_decode_into");
 
     let small_sizes = [8, 16, 32, 64, 128, 256, 512, 1024];
-    let large_sizes = [
-        1024 * 1024,
-    ];
+    let large_sizes = [1024 * 1024];
 
     for size in small_sizes.iter().chain(large_sizes.iter()) {
         let size = *size;

@@ -1,4 +1,4 @@
-use basekit::base32::{encode_into, ALPHABET_BASE32, Base32EncodeConfig};
+use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode_into};
 use criterion::{BenchmarkId, Criterion, Throughput};
 
 fn create_config() -> Base32EncodeConfig {
@@ -13,9 +13,7 @@ fn main() {
     let mut group = c.benchmark_group("base32_encode_into");
 
     let small_sizes = [8, 16, 32, 64, 128, 256, 512, 1024];
-    let large_sizes = [
-        1024 * 1024,
-    ];
+    let large_sizes = [1024 * 1024];
 
     for size in small_sizes.iter().chain(large_sizes.iter()) {
         let size = *size;
