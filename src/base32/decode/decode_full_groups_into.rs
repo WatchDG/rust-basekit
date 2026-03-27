@@ -37,7 +37,7 @@ use super::simd::avx2::avx2_decode_full_groups_into;
 use super::simd::ssse3::ssse3_decode_full_groups_into;
 
 #[inline(always)]
-pub fn decode_full_groups_into(
+pub(crate) fn decode_full_groups_into(
     config: &Base32DecodeConfig,
     dst: &mut [u8],
     src: &[u8],
