@@ -8,8 +8,8 @@ pub mod output;
 #[cfg(any(feature = "simd-ssse3", feature = "simd-avx2", feature = "simd-avx512"))]
 pub mod simd;
 
-pub use encode_full_group_into::encode_full_group_into;
-pub use encode_full_groups_into::encode_full_groups_into;
+pub(crate) use encode_full_group_into::encode_full_group_into;
+pub(crate) use encode_full_groups_into::encode_full_groups_into;
 pub use encode_impl::encode;
 pub use encode_into::encode_into;
 pub use encode_tail_into::encode_tail_into;

@@ -4,7 +4,7 @@ use super::super::config::Base16EncodeConfig;
 use super::super::error::Base16Error;
 
 #[inline(always)]
-pub fn encode_full_group_into(
+pub(crate) fn encode_full_group_into(
     config: &Base16EncodeConfig,
     dst: &mut [u8],
     src: &[u8],

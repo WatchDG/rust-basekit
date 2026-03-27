@@ -1,7 +1,7 @@
 use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
 
-pub use super::encode_full_groups_into::encode_full_groups_into;
+pub(crate) use super::encode_full_groups_into::encode_full_groups_into;
 pub use super::encode_tail_into::encode_tail_into;
 
 #[inline(always)]

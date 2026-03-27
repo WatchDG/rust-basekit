@@ -36,7 +36,7 @@ use super::simd::ssse3::ssse3_encode_full_groups_into;
 use super::encode_full_group_into;
 
 #[inline(always)]
-pub fn encode_full_groups_into(
+pub(crate) fn encode_full_groups_into(
     config: &Base32EncodeConfig,
     dst: &mut [u8],
     src: &[u8],

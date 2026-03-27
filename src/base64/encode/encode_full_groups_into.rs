@@ -35,7 +35,7 @@ use super::simd::avx512::avx512_encode_full_groups_into;
 use super::simd::ssse3::ssse3_encode_full_groups_into;
 
 #[inline(always)]
-pub fn encode_full_groups_into(
+pub(crate) fn encode_full_groups_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],

@@ -4,7 +4,7 @@ use super::super::config::Base32EncodeConfig;
 use super::super::error::Base32Error;
 
 #[inline(always)]
-pub fn encode_full_group_into(
+pub(crate) fn encode_full_group_into(
     config: &Base32EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
