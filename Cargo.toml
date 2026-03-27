@@ -31,11 +31,26 @@ path = "benches/base64/encode_into_bench/main.rs"
 harness = false
 
 [[bench]]
+name = "base64_decode_into_bench"
+path = "benches/base64/decode_into_bench/main.rs"
+harness = false
+
+[[bench]]
 name = "base32_encode_into_bench"
 path = "benches/base32/encode_into_bench/main.rs"
 harness = false
 
 [[bench]]
+name = "base32_decode_into_bench"
+path = "benches/base32/decode_into_bench/main.rs"
+harness = false
+
+[[bench]]
 name = "base16_encode_into_bench"
 path = "benches/base16/encode_into_bench/main.rs"
+harness = false
+
+[[bench]]
+name = "base16_decode_into_bench"
+path = "benches/base16/decode_into_bench/main.rs"
 harness = false
