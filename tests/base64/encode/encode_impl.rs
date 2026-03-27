@@ -1,7 +1,7 @@
 use basekit::base64::{ALPHABET_BASE64, Base64EncodeConfig, encode};
 
 fn create_config() -> Base64EncodeConfig {
-    Base64EncodeConfig::new(ALPHABET_BASE64, b'=')
+    Base64EncodeConfig::new(ALPHABET_BASE64, Some(b'='))
 }
 
 #[test]

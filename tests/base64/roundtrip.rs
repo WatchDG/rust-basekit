@@ -4,7 +4,7 @@ use basekit::base64::{
 };
 
 fn create_encode_config() -> Base64EncodeConfig {
-    Base64EncodeConfig::new(ALPHABET_BASE64, b'=')
+    Base64EncodeConfig::new(ALPHABET_BASE64, Some(b'='))
 }
 
 fn create_decode_config() -> Base64DecodeConfig {

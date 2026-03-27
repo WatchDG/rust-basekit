@@ -10,13 +10,23 @@ pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64Enco
 
     let full_chunks = data.len() / 3;
     let remainder = data.len() % 3;
-    let output_len = full_chunks * 4
-        + match remainder {
-            0 => 0,
-            1 => 4,
-            2 => 4,
-            _ => unreachable!(),
-        };
+    let output_len = if config.padding.is_some() {
+        full_chunks * 4
+            + match remainder {
+                0 => 0,
+                1 => 4,
+                2 => 4,
+                _ => unreachable!(),
+            }
+    } else {
+        full_chunks * 4
+            + match remainder {
+                0 => 0,
+                1 => 2,
+                2 => 3,
+                _ => unreachable!(),
+            }
+    };
 
     let mut output = vec![0u8; output_len];
     let _ = encode_into(config, &mut output, data).unwrap();

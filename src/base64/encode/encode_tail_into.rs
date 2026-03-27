@@ -10,7 +10,6 @@ pub fn encode_tail_into(
     src: &[u8],
 ) -> Result<usize, Base64Error> {
     let alphabet_ptr = config.alphabet.as_ptr();
-    let padding = config.padding;
 
     match src.len() {
         1 => {
@@ -23,10 +22,17 @@ pub fn encode_tail_into(
                 ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
                 ptr.offset(1)
                     .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
-                ptr.offset(2).write(padding);
-                ptr.offset(3).write(padding);
             }
-            Ok(4)
+
+            if let Some(padding) = config.padding {
+                unsafe {
+                    ptr.offset(2).write(padding);
+                    ptr.offset(3).write(padding);
+                }
+                Ok(4)
+            } else {
+                Ok(2)
+            }
         }
         2 => {
             let triple = ((src[0] as u32) << 16) | ((src[1] as u32) << 8);
@@ -41,9 +47,16 @@ pub fn encode_tail_into(
                     .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
                 ptr.offset(2)
                     .write(ptr::read_unaligned(alphabet_ptr.add(c2)));
-                ptr.offset(3).write(padding);
             }
-            Ok(4)
+
+            if let Some(padding) = config.padding {
+                unsafe {
+                    ptr.offset(3).write(padding);
+                }
+                Ok(4)
+            } else {
+                Ok(3)
+            }
         }
         0 => Ok(0),
         _ => unreachable!(),

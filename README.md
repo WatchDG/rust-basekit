@@ -66,7 +66,7 @@ use basekit::base64::{
     PADDING_BASE64, encode, decode,
 };
 
-let encode_config = Base64EncodeConfig::new(ALPHABET_BASE64, PADDING_BASE64);
+let encode_config = Base64EncodeConfig::new(ALPHABET_BASE64, Some(PADDING_BASE64));
 let decode_config = Base64DecodeConfig::new(DECODE_TABLE_BASE64, PADDING_BASE64);
 
 let data = b"Hello, World!";
@@ -88,7 +88,7 @@ use basekit::base64::{
     PADDING_BASE64, encode, decode,
 };
 
-let encode_config = Base64EncodeConfig::new(ALPHABET_BASE64_URL, PADDING_BASE64);
+let encode_config = Base64EncodeConfig::new(ALPHABET_BASE64_URL, Some(PADDING_BASE64));
 let decode_config = Base64DecodeConfig::new(DECODE_TABLE_BASE64_URL, PADDING_BASE64);
 
 let data = b"Hello, World!";
