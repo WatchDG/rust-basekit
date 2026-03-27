@@ -3,7 +3,11 @@ use super::super::error::Base64Error;
 use super::decode_into::decode_into;
 use super::output::Base64DecodeOutput;
 
-pub fn decode(config: &Base64DecodeConfig, data: &[u8]) -> Result<Base64DecodeOutput, Base64Error> {
+pub fn decode(
+    config: &Base64DecodeConfig,
+    data: impl AsRef<[u8]>,
+) -> Result<Base64DecodeOutput, Base64Error> {
+    let data = data.as_ref();
     if data.is_empty() {
         return Ok(Base64DecodeOutput { inner: Vec::new() });
     }

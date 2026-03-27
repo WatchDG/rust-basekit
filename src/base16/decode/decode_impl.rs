@@ -3,7 +3,11 @@ use super::super::error::Base16Error;
 use super::decode_into::decode_into;
 use super::output::Base16DecodeOutput;
 
-pub fn decode(config: &Base16DecodeConfig, data: &[u8]) -> Result<Base16DecodeOutput, Base16Error> {
+pub fn decode(
+    config: &Base16DecodeConfig,
+    data: impl AsRef<[u8]>,
+) -> Result<Base16DecodeOutput, Base16Error> {
+    let data = data.as_ref();
     if data.is_empty() {
         return Ok(Base16DecodeOutput { inner: Vec::new() });
     }

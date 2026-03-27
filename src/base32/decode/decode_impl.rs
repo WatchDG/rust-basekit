@@ -3,7 +3,11 @@ use super::super::error::Base32Error;
 use super::decode_into::decode_into;
 use super::output::Base32DecodeOutput;
 
-pub fn decode(config: &Base32DecodeConfig, data: &[u8]) -> Result<Base32DecodeOutput, Base32Error> {
+pub fn decode(
+    config: &Base32DecodeConfig,
+    data: impl AsRef<[u8]>,
+) -> Result<Base32DecodeOutput, Base32Error> {
+    let data = data.as_ref();
     if data.is_empty() {
         return Ok(Base32DecodeOutput { inner: Vec::new() });
     }
