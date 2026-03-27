@@ -123,7 +123,7 @@ pub(crate) fn encode_full_groups_into(
         let ssse3_groups = remaining.len() / 12;
         let ssse3_bytes = ssse3_groups * 12;
 
-        if ssse3_bytes > 0 {
+        if ssse3_groups >= 1 {
             dst_offset += unsafe {
                 ssse3_encode_full_groups_into(
                     config,
