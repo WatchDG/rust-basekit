@@ -27,6 +27,15 @@ pub(crate) fn avx512_encode_full_groups_into(
     let sel2_mask = _mm512_set1_epi8(0x20u8 as i8);
     let mask_low4 = _mm512_set1_epi8(0x0F);
 
+    let (alpha0, alpha1, alpha2, alpha3) = unsafe {
+        (
+            _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet_ptr as *const __m128i)),
+            _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet_ptr.add(16) as *const __m128i)),
+            _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet_ptr.add(32) as *const __m128i)),
+            _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet_ptr.add(48) as *const __m128i)),
+        )
+    };
+
     let mut src_offset = 0usize;
     let mut dst_offset = 0usize;
 
@@ -35,7 +44,6 @@ pub(crate) fn avx512_encode_full_groups_into(
             let src_ptr = src.as_ptr().add(src_offset);
             let dst_ptr = dst.as_mut_ptr().add(dst_offset);
             avx512_encode_block(
-                alphabet_ptr,
                 dst_ptr,
                 src_ptr,
                 shuf_mask_512,
@@ -47,6 +55,10 @@ pub(crate) fn avx512_encode_full_groups_into(
                 sel1_mask,
                 sel2_mask,
                 mask_low4,
+                alpha0,
+                alpha1,
+                alpha2,
+                alpha3,
             );
         }
 
@@ -89,7 +101,6 @@ pub(crate) fn avx512_encode_full_groups_into(
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
 unsafe fn avx512_encode_block(
-    alphabet: *const u8,
     dst: *mut u8,
     src: *const u8,
     shuf_mask_512: __m512i,
@@ -101,6 +112,10 @@ unsafe fn avx512_encode_block(
     sel1_mask: __m512i,
     sel2_mask: __m512i,
     mask_low4: __m512i,
+    alpha0: __m512i,
+    alpha1: __m512i,
+    alpha2: __m512i,
+    alpha3: __m512i,
 ) {
     let l0 = _mm_loadu_si128(src as *const __m128i);
     let l1 = _mm_loadu_si128(src.add(12) as *const __m128i);
@@ -118,11 +133,6 @@ unsafe fn avx512_encode_block(
     let t1 = _mm512_mullo_epi16(_mm512_and_si512(shuffled, mask1), mul_mask1);
 
     let indices = _mm512_or_si512(t0, t1);
-
-    let alpha0 = _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet as *const __m128i));
-    let alpha1 = _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet.add(16) as *const __m128i));
-    let alpha2 = _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet.add(32) as *const __m128i));
-    let alpha3 = _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet.add(48) as *const __m128i));
 
     let upper2 = _mm512_and_si512(indices, mask_upper2);
     let sel0 = _mm512_cmpeq_epi8_mask(upper2, _mm512_setzero_si512());
