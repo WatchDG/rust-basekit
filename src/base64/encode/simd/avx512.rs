@@ -13,6 +13,20 @@ pub(crate) fn avx512_encode_full_groups_into(
     src: &[u8],
 ) -> Result<usize, Base64Error> {
     let alphabet_ptr = config.alphabet.as_ptr();
+
+    let shuf_mask = _mm_set_epi8(10, 11, 9, 10, 7, 8, 6, 7, 4, 5, 3, 4, 1, 2, 0, 1);
+    let shuf_mask_512 = _mm512_broadcast_i32x4(shuf_mask);
+
+    let mask0 = _mm512_set1_epi32(0x0FC0FC00u32 as i32);
+    let mask1 = _mm512_set1_epi32(0x003F03F0u32 as i32);
+    let mul_mask0 = _mm512_set1_epi32(0x04000040u32 as i32);
+    let mul_mask1 = _mm512_set1_epi32(0x01000010u32 as i32);
+
+    let mask_upper2 = _mm512_set1_epi8(0x30u8 as i8);
+    let sel1_mask = _mm512_set1_epi8(0x10u8 as i8);
+    let sel2_mask = _mm512_set1_epi8(0x20u8 as i8);
+    let mask_low4 = _mm512_set1_epi8(0x0F);
+
     let mut src_offset = 0usize;
     let mut dst_offset = 0usize;
 
@@ -20,7 +34,20 @@ pub(crate) fn avx512_encode_full_groups_into(
         unsafe {
             let src_ptr = src.as_ptr().add(src_offset);
             let dst_ptr = dst.as_mut_ptr().add(dst_offset);
-            avx512_encode_block(alphabet_ptr, dst_ptr, src_ptr);
+            avx512_encode_block(
+                alphabet_ptr,
+                dst_ptr,
+                src_ptr,
+                shuf_mask_512,
+                mask0,
+                mask1,
+                mul_mask0,
+                mul_mask1,
+                mask_upper2,
+                sel1_mask,
+                sel2_mask,
+                mask_low4,
+            );
         }
 
         src_offset += 48;
@@ -61,67 +88,49 @@ pub(crate) fn avx512_encode_full_groups_into(
 #[target_feature(enable = "avx512f,avx512bw")]
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
-unsafe fn avx512_encode_block(alphabet: *const u8, dst: *mut u8, src: *const u8) {
-    // Load four overlapping 16-byte windows so that each ZMM lane gets the 12
-    // bytes it needs at positions 0–11 within that lane.
+unsafe fn avx512_encode_block(
+    alphabet: *const u8,
+    dst: *mut u8,
+    src: *const u8,
+    shuf_mask_512: __m512i,
+    mask0: __m512i,
+    mask1: __m512i,
+    mul_mask0: __m512i,
+    mul_mask1: __m512i,
+    mask_upper2: __m512i,
+    sel1_mask: __m512i,
+    sel2_mask: __m512i,
+    mask_low4: __m512i,
+) {
     let l0 = _mm_loadu_si128(src as *const __m128i);
     let l1 = _mm_loadu_si128(src.add(12) as *const __m128i);
     let l2 = _mm_loadu_si128(src.add(24) as *const __m128i);
     let l3 = _mm_loadu_si128(src.add(36) as *const __m128i);
 
-    // Combine: l0 → lane 0, l1 → lane 1, l2 → lane 2, l3 → lane 3.
     let input = _mm512_broadcast_i32x4(l0);
     let input = _mm512_inserti32x4(input, l1, 1);
     let input = _mm512_inserti32x4(input, l2, 2);
     let input = _mm512_inserti32x4(input, l3, 3);
 
-    // Step 1 — Reshuffle (lane-local vpshufb).
-    //
-    // Each lane input: [ a0  b0  c0 | a1  b1  c1 | a2  b2  c2 | a3  b3  c3  ?  ?  ?  ? ]
-    // Each lane →      [ b  a  c  b | b  a  c  b | b  a  c  b | b  a  c  b ]
-    //
-    // The same 128-bit mask is broadcast to all four lanes.
-    let shuf_mask = _mm_set_epi8(10, 11, 9, 10, 7, 8, 6, 7, 4, 5, 3, 4, 1, 2, 0, 1);
-    let shuffled = _mm512_shuffle_epi8(input, _mm512_broadcast_i32x4(shuf_mask));
+    let shuffled = _mm512_shuffle_epi8(input, shuf_mask_512);
 
-    // Step 2 — Extract 6-bit indices.
-    //
-    // Identical constants to the AVX2 implementation, broadcast across all four lanes.
-    let mask0 = _mm512_set1_epi32(0x0FC0FC00u32 as i32);
-    let mask1 = _mm512_set1_epi32(0x003F03F0u32 as i32);
+    let t0 = _mm512_mulhi_epu16(_mm512_and_si512(shuffled, mask0), mul_mask0);
+    let t1 = _mm512_mullo_epi16(_mm512_and_si512(shuffled, mask1), mul_mask1);
 
-    let t0 = _mm512_mulhi_epu16(
-        _mm512_and_si512(shuffled, mask0),
-        _mm512_set1_epi32(0x04000040u32 as i32),
-    );
-    let t1 = _mm512_mullo_epi16(
-        _mm512_and_si512(shuffled, mask1),
-        _mm512_set1_epi32(0x01000010u32 as i32),
-    );
-
-    // indices[i] ∈ [0, 63] for each byte i
     let indices = _mm512_or_si512(t0, t1);
 
-    // Step 3 — Alphabet lookup for an arbitrary 64-byte alphabet.
-    //
-    // Each 16-char chunk of the alphabet is broadcast to all four lanes.
-    // AVX-512 cmpeq returns __mmask64 (one bit per byte) instead of a data
-    // register, so we use _mm512_maskz_shuffle_epi8 for the zero-masking step.
-    //
-    //   bits 5..4 of index → which block:  00 → alpha0,  01 → alpha1,
-    //                                       10 → alpha2,  11 → alpha3
     let alpha0 = _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet as *const __m128i));
     let alpha1 = _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet.add(16) as *const __m128i));
     let alpha2 = _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet.add(32) as *const __m128i));
     let alpha3 = _mm512_broadcast_i32x4(_mm_loadu_si128(alphabet.add(48) as *const __m128i));
 
-    let upper2 = _mm512_and_si512(indices, _mm512_set1_epi8(0x30u8 as i8));
+    let upper2 = _mm512_and_si512(indices, mask_upper2);
     let sel0 = _mm512_cmpeq_epi8_mask(upper2, _mm512_setzero_si512());
-    let sel1 = _mm512_cmpeq_epi8_mask(upper2, _mm512_set1_epi8(0x10u8 as i8));
-    let sel2 = _mm512_cmpeq_epi8_mask(upper2, _mm512_set1_epi8(0x20u8 as i8));
-    let sel3 = _mm512_cmpeq_epi8_mask(upper2, _mm512_set1_epi8(0x30u8 as i8));
+    let sel1 = _mm512_cmpeq_epi8_mask(upper2, sel1_mask);
+    let sel2 = _mm512_cmpeq_epi8_mask(upper2, sel2_mask);
+    let sel3 = _mm512_cmpeq_epi8_mask(upper2, mask_upper2);
 
-    let idx_low = _mm512_and_si512(indices, _mm512_set1_epi8(0x0F));
+    let idx_low = _mm512_and_si512(indices, mask_low4);
     let r0 = _mm512_maskz_shuffle_epi8(sel0, alpha0, idx_low);
     let r1 = _mm512_maskz_shuffle_epi8(sel1, alpha1, idx_low);
     let r2 = _mm512_maskz_shuffle_epi8(sel2, alpha2, idx_low);
