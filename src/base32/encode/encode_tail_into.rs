@@ -15,7 +15,15 @@ pub fn encode_tail_into(
     );
 
     let src_len = src.len();
-    let output_len = 8;
+    let output_len_with_padding = 8;
+    let output_len_without_padding = match src_len {
+        1 => 2,
+        2 => 4,
+        3 => 5,
+        4 => 7,
+        _ => unreachable!(),
+    };
+    let output_len = output_len_with_padding;
 
     if dst.len() < output_len {
         return Err(Base32Error::DestinationBufferTooSmall {
@@ -25,7 +33,6 @@ pub fn encode_tail_into(
     }
 
     let alphabet_ptr = config.alphabet.as_ptr();
-    let padding = config.padding;
 
     unsafe {
         let ptr = dst.as_mut_ptr();
@@ -39,12 +46,18 @@ pub fn encode_tail_into(
                 ptr.write(ptr::read_unaligned(alphabet_ptr.add(c0)));
                 ptr.offset(1)
                     .write(ptr::read_unaligned(alphabet_ptr.add(c1)));
-                ptr.offset(2).write(padding);
-                ptr.offset(3).write(padding);
-                ptr.offset(4).write(padding);
-                ptr.offset(5).write(padding);
-                ptr.offset(6).write(padding);
-                ptr.offset(7).write(padding);
+
+                if let Some(padding) = config.padding {
+                    ptr.offset(2).write(padding);
+                    ptr.offset(3).write(padding);
+                    ptr.offset(4).write(padding);
+                    ptr.offset(5).write(padding);
+                    ptr.offset(6).write(padding);
+                    ptr.offset(7).write(padding);
+                    Ok(output_len)
+                } else {
+                    Ok(output_len_without_padding)
+                }
             }
             2 => {
                 let b0 = src[0] as u32;
@@ -61,10 +74,16 @@ pub fn encode_tail_into(
                     .write(ptr::read_unaligned(alphabet_ptr.add(c2)));
                 ptr.offset(3)
                     .write(ptr::read_unaligned(alphabet_ptr.add(c3)));
-                ptr.offset(4).write(padding);
-                ptr.offset(5).write(padding);
-                ptr.offset(6).write(padding);
-                ptr.offset(7).write(padding);
+
+                if let Some(padding) = config.padding {
+                    ptr.offset(4).write(padding);
+                    ptr.offset(5).write(padding);
+                    ptr.offset(6).write(padding);
+                    ptr.offset(7).write(padding);
+                    Ok(output_len)
+                } else {
+                    Ok(output_len_without_padding)
+                }
             }
             3 => {
                 let b0 = src[0] as u32;
@@ -85,9 +104,15 @@ pub fn encode_tail_into(
                     .write(ptr::read_unaligned(alphabet_ptr.add(c3)));
                 ptr.offset(4)
                     .write(ptr::read_unaligned(alphabet_ptr.add(c4)));
-                ptr.offset(5).write(padding);
-                ptr.offset(6).write(padding);
-                ptr.offset(7).write(padding);
+
+                if let Some(padding) = config.padding {
+                    ptr.offset(5).write(padding);
+                    ptr.offset(6).write(padding);
+                    ptr.offset(7).write(padding);
+                    Ok(output_len)
+                } else {
+                    Ok(output_len_without_padding)
+                }
             }
             4 => {
                 let b0 = src[0] as u32;
@@ -115,11 +140,15 @@ pub fn encode_tail_into(
                     .write(ptr::read_unaligned(alphabet_ptr.add(c5)));
                 ptr.offset(6)
                     .write(ptr::read_unaligned(alphabet_ptr.add(c6)));
-                ptr.offset(7).write(padding);
+
+                if let Some(padding) = config.padding {
+                    ptr.offset(7).write(padding);
+                    Ok(output_len)
+                } else {
+                    Ok(output_len_without_padding)
+                }
             }
             _ => unreachable!(),
         }
-
-        Ok(output_len)
     }
 }

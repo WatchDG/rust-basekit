@@ -15,11 +15,13 @@ pub fn decode_into(
     }
 
     let mut padding_count = 0;
-    for &byte in src.iter().rev().take(7) {
-        if byte == config.padding {
-            padding_count += 1;
-        } else {
-            break;
+    if let Some(padding) = config.padding {
+        for &byte in src.iter().rev().take(7) {
+            if byte == padding {
+                padding_count += 1;
+            } else {
+                break;
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 use basekit::base32::{Base32DecodeConfig, Base32Error, DECODE_TABLE_BASE32, decode};
 
 fn create_config() -> Base32DecodeConfig {
-    Base32DecodeConfig::new(DECODE_TABLE_BASE32, b'=')
+    Base32DecodeConfig::new(DECODE_TABLE_BASE32, Some(b'='))
 }
 
 #[test]
@@ -118,7 +118,7 @@ fn test_invalid_character_at_different_positions() {
 #[test]
 fn test_round_trip_hello() {
     use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode};
-    let encode_config = Base32EncodeConfig::new(ALPHABET_BASE32, b'=');
+    let encode_config = Base32EncodeConfig::new(ALPHABET_BASE32, Some(b'='));
     let decode_config = create_config();
 
     let original = b"Hello, World!";
@@ -130,7 +130,7 @@ fn test_round_trip_hello() {
 #[test]
 fn test_round_trip_random() {
     use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode};
-    let encode_config = Base32EncodeConfig::new(ALPHABET_BASE32, b'=');
+    let encode_config = Base32EncodeConfig::new(ALPHABET_BASE32, Some(b'='));
     let decode_config = create_config();
 
     let data: Vec<u8> = (0..1000).map(|i| (i * 17 % 256) as u8).collect();

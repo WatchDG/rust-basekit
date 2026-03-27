@@ -15,12 +15,23 @@ pub fn decode_tail_into(
     for (j, &byte) in src.iter().enumerate() {
         let pos = src_offset + j;
 
-        if byte == config.padding {
-            let expected_min_pos = 8 - padding_count;
-            if j < expected_min_pos {
-                return Err(Base32Error::InvalidPadding);
+        if let Some(padding) = config.padding {
+            if byte == padding {
+                let expected_min_pos = 8 - padding_count;
+                if j < expected_min_pos {
+                    return Err(Base32Error::InvalidPadding);
+                }
+                indices[j] = 0;
+            } else {
+                if byte >= 128 {
+                    return Err(Base32Error::InvalidCharacter(byte, pos));
+                }
+                let val = decode_table[byte as usize];
+                if val < 0 {
+                    return Err(Base32Error::InvalidCharacter(byte, pos));
+                }
+                indices[j] = val;
             }
-            indices[j] = 0;
         } else {
             if byte >= 128 {
                 return Err(Base32Error::InvalidCharacter(byte, pos));

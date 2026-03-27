@@ -1,7 +1,7 @@
 use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32, decode};
 
 fn create_config() -> Base32DecodeConfig {
-    Base32DecodeConfig::new(DECODE_TABLE_BASE32, b'=')
+    Base32DecodeConfig::new(DECODE_TABLE_BASE32, Some(b'='))
 }
 
 #[test]

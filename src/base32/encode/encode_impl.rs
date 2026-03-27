@@ -20,7 +20,10 @@ pub fn encode(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32Enco
             _ => unreachable!(),
         };
 
-    let mut output = vec![config.padding; output_len];
+    let mut output = match config.padding {
+        Some(padding) => vec![padding; output_len],
+        None => vec![0; output_len],
+    };
     let _ = encode_into(config, &mut output, data).unwrap();
     Base32EncodeOutput { inner: output }
 }

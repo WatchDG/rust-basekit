@@ -1,7 +1,7 @@
 use basekit::base32::{ALPHABET_BASE32_HEX, Base32EncodeConfig, Base32Error, encode_into};
 
 fn create_config() -> Base32EncodeConfig {
-    Base32EncodeConfig::new(ALPHABET_BASE32_HEX, b'=')
+    Base32EncodeConfig::new(ALPHABET_BASE32_HEX, Some(b'='))
 }
 
 #[test]
@@ -38,7 +38,7 @@ fn test_encode_into_empty() {
 fn test_round_trip() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode_into};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let src = b"Hello, World!";
     let mut encoded = [0u8; 100];

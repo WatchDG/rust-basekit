@@ -11,6 +11,14 @@ fn create_decode_config() -> Base64DecodeConfig {
     Base64DecodeConfig::new(DECODE_TABLE_BASE64, Some(b'='))
 }
 
+fn create_encode_config_no_padding() -> Base64EncodeConfig {
+    Base64EncodeConfig::new(ALPHABET_BASE64, None)
+}
+
+fn create_decode_config_no_padding() -> Base64DecodeConfig {
+    Base64DecodeConfig::new(DECODE_TABLE_BASE64, None)
+}
+
 fn roundtrip(original: &[u8]) {
     let enc_config = create_encode_config();
     let dec_config = create_decode_config();
@@ -42,6 +50,20 @@ fn roundtrip_into(original: &[u8]) {
         &decoded_dst[..actual_decoded_len],
         original,
         "Round-trip failed for {:?}",
+        original
+    );
+}
+
+fn roundtrip_no_padding(original: &[u8]) {
+    let enc_config = create_encode_config_no_padding();
+    let dec_config = create_decode_config_no_padding();
+
+    let encoded = encode(&enc_config, original);
+    let decoded = Vec::<u8>::from(decode(&dec_config, &Vec::<u8>::from(encoded)).unwrap());
+
+    assert_eq!(
+        decoded, original,
+        "Round-trip no-padding failed for {:?}",
         original
     );
 }
@@ -193,5 +215,78 @@ fn test_roundtrip_all_sizes_1_to_30() {
         let data: Vec<u8> = (0..size).map(|i| ((i * 7 + 13) % 256) as u8).collect();
         roundtrip(&data);
         roundtrip_into(&data);
+    }
+}
+
+#[test]
+fn test_roundtrip_no_padding_empty() {
+    roundtrip_no_padding(&[]);
+}
+
+#[test]
+fn test_roundtrip_no_padding_strings() {
+    let strings = [
+        "Hello",
+        "Hello!",
+        "Hello World",
+        "Hello, World!",
+        "The quick brown fox jumps over the lazy dog",
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+        "Spaces and\ttabs\nand\nnewlines",
+    ];
+    for s in strings {
+        roundtrip_no_padding(s.as_bytes());
+    }
+}
+
+#[test]
+fn test_roundtrip_no_padding_consistency_with_padded() {
+    let enc_config_pad = create_encode_config();
+    let dec_config_pad = create_decode_config();
+    let enc_config_no_pad = create_encode_config_no_padding();
+    let dec_config_no_pad = create_decode_config_no_padding();
+
+    let data = b"Hello, World! The quick brown fox jumps over the lazy dog.";
+
+    let encoded_pad = encode(&enc_config_pad, data);
+    let encoded_no_pad = encode(&enc_config_no_pad, data);
+
+    let decoded_pad =
+        Vec::<u8>::from(decode(&dec_config_pad, &Vec::<u8>::from(encoded_pad)).unwrap());
+    let decoded_no_pad =
+        Vec::<u8>::from(decode(&dec_config_no_pad, &Vec::<u8>::from(encoded_no_pad)).unwrap());
+
+    assert_eq!(decoded_pad, decoded_no_pad, "Decoded values should match");
+    assert_eq!(decoded_pad, data, "Decoded data should match original");
+}
+
+#[test]
+fn test_roundtrip_no_padding_binary_patterns() {
+    let patterns: Vec<Vec<u8>> = vec![
+        (0..64).collect(),
+        (0..128).collect(),
+        (0..192).collect(),
+        (0..255).collect(),
+    ];
+    for p in patterns {
+        roundtrip_no_padding(&p);
+    }
+}
+
+#[test]
+fn test_roundtrip_no_padding_all_zeros() {
+    let sizes = [1, 2, 3, 4, 5, 10, 50, 100];
+    for size in sizes {
+        let data = vec![0u8; size];
+        roundtrip_no_padding(&data);
+    }
+}
+
+#[test]
+fn test_roundtrip_no_padding_all_ones() {
+    let sizes = [1, 2, 3, 4, 5, 10, 50, 100];
+    for size in sizes {
+        let data = vec![0xFFu8; size];
+        roundtrip_no_padding(&data);
     }
 }

@@ -44,8 +44,8 @@ use basekit::base32::{
     PADDING_BASE32, encode, decode,
 };
 
-let encode_config = Base32EncodeConfig::new(ALPHABET_BASE32, PADDING_BASE32);
-let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32, PADDING_BASE32);
+let encode_config = Base32EncodeConfig::new(ALPHABET_BASE32, Some(PADDING_BASE32));
+let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32, Some(PADDING_BASE32));
 
 let data = b"Hello, World!";
 let encoded = encode(&encode_config, data);

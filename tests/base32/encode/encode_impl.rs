@@ -1,7 +1,7 @@
 use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode};
 
 fn create_config() -> Base32EncodeConfig {
-    Base32EncodeConfig::new(ALPHABET_BASE32, b'=')
+    Base32EncodeConfig::new(ALPHABET_BASE32, Some(b'='))
 }
 
 #[test]

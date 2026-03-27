@@ -3,7 +3,7 @@ use criterion::{BenchmarkId, Criterion, Throughput};
 use std::hint::black_box;
 
 fn create_config() -> Base32EncodeConfig {
-    Base32EncodeConfig::new(ALPHABET_BASE32, b'=')
+    Base32EncodeConfig::new(ALPHABET_BASE32, Some(b'='))
 }
 
 fn main() {

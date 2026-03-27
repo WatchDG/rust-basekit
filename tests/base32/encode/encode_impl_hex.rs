@@ -1,7 +1,7 @@
 use basekit::base32::{ALPHABET_BASE32_HEX, Base32EncodeConfig, encode};
 
 fn create_config() -> Base32EncodeConfig {
-    Base32EncodeConfig::new(ALPHABET_BASE32_HEX, b'=')
+    Base32EncodeConfig::new(ALPHABET_BASE32_HEX, Some(b'='))
 }
 
 #[test]
@@ -43,7 +43,7 @@ fn test_1mb_random() {
 fn test_round_trip_hello() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let original = b"Hello, World!";
     let encoded = encode(&encode_config, original);
@@ -55,7 +55,7 @@ fn test_round_trip_hello() {
 fn test_round_trip_random() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let data: Vec<u8> = (0..1000).map(|i| (i * 17 % 256) as u8).collect();
     let encoded = encode(&encode_config, &data);
@@ -67,7 +67,7 @@ fn test_round_trip_random() {
 fn test_round_trip_foo_bar() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let original = b"foo bar";
     let encoded = encode(&encode_config, original);
@@ -79,7 +79,7 @@ fn test_round_trip_foo_bar() {
 fn test_round_trip_five_bytes() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let original = &[102u8, 111, 111, 98, 97];
     let encoded = encode(&encode_config, original);
@@ -91,7 +91,7 @@ fn test_round_trip_five_bytes() {
 fn test_round_trip_four_bytes() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let original = &[102u8, 111, 111, 98];
     let encoded = encode(&encode_config, original);
@@ -103,7 +103,7 @@ fn test_round_trip_four_bytes() {
 fn test_round_trip_three_bytes() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let original = &[102u8, 111, 111];
     let encoded = encode(&encode_config, original);
@@ -115,7 +115,7 @@ fn test_round_trip_three_bytes() {
 fn test_round_trip_two_bytes() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let original = &[102u8, 111];
     let encoded = encode(&encode_config, original);
@@ -127,7 +127,7 @@ fn test_round_trip_two_bytes() {
 fn test_round_trip_single_byte() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let original = &[102u8];
     let encoded = encode(&encode_config, original);
@@ -139,7 +139,7 @@ fn test_round_trip_single_byte() {
 fn test_round_trip_all_zeros() {
     use basekit::base32::{Base32DecodeConfig, DECODE_TABLE_BASE32_HEX, decode};
     let encode_config = create_config();
-    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, b'=');
+    let decode_config = Base32DecodeConfig::new(DECODE_TABLE_BASE32_HEX, Some(b'='));
 
     let original = &[0u8, 0, 0, 0, 0];
     let encoded = encode(&encode_config, original);

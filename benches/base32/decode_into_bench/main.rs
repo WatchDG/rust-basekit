@@ -6,11 +6,11 @@ use criterion::{BenchmarkId, Criterion, Throughput};
 use std::hint::black_box;
 
 fn create_encode_config() -> Base32EncodeConfig {
-    Base32EncodeConfig::new(ALPHABET_BASE32, b'=')
+    Base32EncodeConfig::new(ALPHABET_BASE32, Some(b'='))
 }
 
 fn create_decode_config() -> Base32DecodeConfig {
-    Base32DecodeConfig::new(DECODE_TABLE_BASE32, b'=')
+    Base32DecodeConfig::new(DECODE_TABLE_BASE32, Some(b'='))
 }
 
 fn main() {
