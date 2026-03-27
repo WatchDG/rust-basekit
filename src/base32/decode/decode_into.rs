@@ -1,7 +1,7 @@
 use super::super::config::Base32DecodeConfig;
 use super::super::error::Base32Error;
-use super::decode_full_groups_into::decode_full_groups_into;
-use super::decode_tail_into::decode_tail_into;
+use super::decode_full_groups_into;
+use super::decode_tail_into;
 
 #[inline(always)]
 pub fn decode_into(
