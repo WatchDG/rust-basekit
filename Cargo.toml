@@ -21,6 +21,12 @@ simd-avx512  = []
 [dev-dependencies]
 criterion = "0.5"
 
+[profile.bench]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
+opt-level = 3
+
 [[bench]]
 name = "base64_encode_into_bench"
 path = "benches/base64/encode_into_bench/main.rs"
