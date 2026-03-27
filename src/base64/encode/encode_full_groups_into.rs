@@ -81,7 +81,7 @@ pub(crate) fn encode_full_groups_into(
         let avx512_groups = src.len() / 48;
         let avx512_bytes = avx512_groups * 48;
 
-        if avx512_bytes > 0 {
+        if avx512_groups >= 1 {
             dst_offset += unsafe {
                 avx512_encode_full_groups_into(
                     config,
@@ -102,7 +102,7 @@ pub(crate) fn encode_full_groups_into(
         let avx2_groups = remaining.len() / 24;
         let avx2_bytes = avx2_groups * 24;
 
-        if avx2_groups >= 2 {
+        if avx2_groups >= 1 {
             dst_offset += unsafe {
                 avx2_encode_full_groups_into(
                     config,
