@@ -9,25 +9,17 @@ pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64Enco
         return Base64EncodeOutput { inner: Vec::new() };
     }
 
-    let full_chunks = data.len() / 3;
+    let full_groups = data.len() / 3;
     let remainder = data.len() % 3;
-    let output_len = if config.padding.is_some() {
-        full_chunks * 4
-            + match remainder {
-                0 => 0,
-                1 => 4,
-                2 => 4,
-                _ => unreachable!(),
-            }
-    } else {
-        full_chunks * 4
-            + match remainder {
-                0 => 0,
-                1 => 2,
-                2 => 3,
-                _ => unreachable!(),
-            }
-    };
+    let output_len = full_groups * 4
+        + match (remainder, config.padding.is_some()) {
+            (0, _) => 0,
+            (1, true) => 4,
+            (1, false) => 2,
+            (2, true) => 4,
+            (2, false) => 3,
+            _ => unreachable!(),
+        };
 
     let mut output = Vec::with_capacity(output_len);
     unsafe { output.set_len(output_len) };
