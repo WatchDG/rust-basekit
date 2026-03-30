@@ -3,7 +3,7 @@ use super::super::error::Base32Error;
 use super::decode_full_groups_into;
 use super::decode_tail_into;
 
-#[inline(always)]
+#[inline]
 pub fn decode_into(
     config: &Base32DecodeConfig,
     mut dst: impl AsMut<[u8]>,

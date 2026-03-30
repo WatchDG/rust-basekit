@@ -2,6 +2,7 @@ use super::super::config::Base32EncodeConfig;
 use super::encode_into::encode_into;
 use super::output::Base32EncodeOutput;
 
+#[inline]
 pub fn encode(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32EncodeOutput {
     let data = data.as_ref();
     if data.is_empty() {

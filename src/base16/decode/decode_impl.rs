@@ -3,6 +3,7 @@ use super::super::error::Base16Error;
 use super::decode_into::decode_into;
 use super::output::Base16DecodeOutput;
 
+#[inline]
 pub fn decode(
     config: &Base16DecodeConfig,
     data: impl AsRef<[u8]>,

@@ -3,6 +3,7 @@ use super::super::error::Base32Error;
 use super::decode_into::decode_into;
 use super::output::Base32DecodeOutput;
 
+#[inline]
 pub fn decode(
     config: &Base32DecodeConfig,
     data: impl AsRef<[u8]>,

@@ -33,7 +33,7 @@ use super::simd::avx512::avx512_decode_into;
 ))]
 use super::simd::ssse3::ssse3_decode_into;
 
-#[inline(always)]
+#[inline]
 pub fn decode_into(
     config: &Base16DecodeConfig,
     mut dst: impl AsMut<[u8]>,

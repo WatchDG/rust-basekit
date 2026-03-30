@@ -4,7 +4,7 @@ use super::super::error::Base32Error;
 pub(crate) use super::encode_full_groups_into;
 pub use super::encode_tail_into;
 
-#[inline(always)]
+#[inline]
 pub fn encode_into(
     config: &Base32EncodeConfig,
     mut dst: impl AsMut<[u8]>,

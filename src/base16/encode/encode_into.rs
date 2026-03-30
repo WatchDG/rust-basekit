@@ -34,7 +34,7 @@ use super::simd::avx512::avx512_encode_into;
 ))]
 use super::simd::ssse3::ssse3_encode_into;
 
-#[inline(always)]
+#[inline]
 pub fn encode_into(
     config: &Base16EncodeConfig,
     mut dst: impl AsMut<[u8]>,
