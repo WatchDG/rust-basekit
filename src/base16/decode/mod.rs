@@ -1,8 +1,8 @@
-pub mod decode_impl;
-pub mod decode_into;
-pub mod output;
+mod decode_impl;
+mod decode_into;
+mod output;
 #[cfg(any(feature = "simd-ssse3", feature = "simd-avx2", feature = "simd-avx512"))]
-pub mod simd;
+mod simd;
 
 pub use decode_impl::decode;
 pub use decode_into::decode_into;
