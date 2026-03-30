@@ -4,7 +4,6 @@ pub mod encode_impl;
 pub mod encode_into;
 pub mod encode_tail_into;
 pub mod output;
-
 #[cfg(any(feature = "simd-ssse3", feature = "simd-avx2", feature = "simd-avx512"))]
 pub mod simd;
 
