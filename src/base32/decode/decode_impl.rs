@@ -34,7 +34,10 @@ pub fn decode(
     }
 
     let output_len = (clean_len * 5) / 8;
-    let mut inner = vec![0u8; output_len];
-    let _ = decode_into(config, &mut inner, data)?;
-    Ok(Base32DecodeOutput { inner })
+
+    let mut output = Vec::with_capacity(output_len);
+    unsafe { output.set_len(output_len) };
+
+    let _ = decode_into(config, &mut output, data)?;
+    Ok(Base32DecodeOutput { inner: output })
 }

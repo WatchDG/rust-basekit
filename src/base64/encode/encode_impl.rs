@@ -23,6 +23,7 @@ pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64Enco
 
     let mut output = Vec::with_capacity(output_len);
     unsafe { output.set_len(output_len) };
+
     let _ = encode_into(config, &mut output, data).unwrap();
     Base64EncodeOutput { inner: output }
 }

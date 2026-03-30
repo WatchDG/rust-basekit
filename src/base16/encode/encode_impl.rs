@@ -9,7 +9,10 @@ pub fn encode(config: &Base16EncodeConfig, data: impl AsRef<[u8]>) -> Base16Enco
     }
 
     let output_len = data.len() * 2;
-    let mut output = vec![0u8; output_len];
+
+    let mut output = Vec::with_capacity(output_len);
+    unsafe { output.set_len(output_len) };
+
     let _ = encode_into(config, &mut output, data).unwrap();
     Base16EncodeOutput { inner: output }
 }
