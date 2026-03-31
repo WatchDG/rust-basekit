@@ -1,8 +1,6 @@
 use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
-
-pub(crate) use super::encode_full_groups_into;
-pub(crate) use super::encode_tail_into;
+use super::encode_into_slice::encode_into_slice;
 
 #[inline]
 pub fn encode_into(
@@ -14,8 +12,9 @@ pub fn encode_into(
         return Ok(0);
     }
 
-    let full_groups = src.len() / 3;
+    let full_groups_count = src.len() / 3;
     let remainder = src.len() % 3;
+    
     let tail_output_len = match (remainder, config.padding.is_some()) {
         (0, _) => 0,
         (1, true) => 4,
@@ -24,7 +23,8 @@ pub fn encode_into(
         (2, false) => 3,
         _ => unreachable!(),
     };
-    let output_len = full_groups * 4 + tail_output_len;
+    
+    let output_len = full_groups_count * 4 + tail_output_len;
 
     if dst.len() < output_len {
         return Err(Base64Error::DestinationBufferTooSmall {
@@ -33,18 +33,17 @@ pub fn encode_into(
         });
     }
 
-    let mut dst_offset = 0usize;
+    let full_groups_src = if full_groups_count > 0 {
+        Some(&src[..full_groups_count * 3])
+    } else {
+        None
+    };
 
-    dst_offset +=
-        encode_full_groups_into(config, &mut dst[..full_groups * 4], &src[..full_groups * 3])?;
+    let tail_src = if tail_output_len > 0 {
+        Some(&src[full_groups_count * 3..])
+    } else {
+        None
+    };
 
-    if remainder > 0 {
-        dst_offset += encode_tail_into(
-            config,
-            &mut dst[dst_offset..dst_offset + tail_output_len],
-            &src[full_groups * 3..],
-        )?;
-    }
-
-    Ok(dst_offset)
+    encode_into_slice(config, dst, full_groups_src, tail_src)
 }
