@@ -5,6 +5,7 @@ use super::output::Base64EncodeOutput;
 #[inline]
 pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64EncodeOutput {
     let data = data.as_ref();
+
     if data.is_empty() {
         return Base64EncodeOutput { inner: Vec::new() };
     }
@@ -25,5 +26,6 @@ pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64Enco
     unsafe { output.set_len(output_len) };
 
     let _ = encode_into(config, &mut output, data).unwrap();
+
     Base64EncodeOutput { inner: output }
 }

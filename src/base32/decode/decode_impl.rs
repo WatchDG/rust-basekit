@@ -9,6 +9,7 @@ pub fn decode(
     data: impl AsRef<[u8]>,
 ) -> Result<Base32DecodeOutput, Base32Error> {
     let data = data.as_ref();
+
     if data.is_empty() {
         return Ok(Base32DecodeOutput { inner: Vec::new() });
     }
@@ -40,5 +41,6 @@ pub fn decode(
     unsafe { output.set_len(output_len) };
 
     let _ = decode_into(config, &mut output, data)?;
+
     Ok(Base32DecodeOutput { inner: output })
 }

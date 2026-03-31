@@ -5,6 +5,7 @@ use super::output::Base16EncodeOutput;
 #[inline]
 pub fn encode(config: &Base16EncodeConfig, data: impl AsRef<[u8]>) -> Base16EncodeOutput {
     let data = data.as_ref();
+
     if data.is_empty() {
         return Base16EncodeOutput { inner: Vec::new() };
     }
@@ -15,5 +16,6 @@ pub fn encode(config: &Base16EncodeConfig, data: impl AsRef<[u8]>) -> Base16Enco
     unsafe { output.set_len(output_len) };
 
     let _ = encode_into(config, &mut output, data).unwrap();
+
     Base16EncodeOutput { inner: output }
 }

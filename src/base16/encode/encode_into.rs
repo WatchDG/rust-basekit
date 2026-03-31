@@ -37,17 +37,15 @@ use super::simd::ssse3::ssse3_encode_into;
 #[inline]
 pub fn encode_into(
     config: &Base16EncodeConfig,
-    mut dst: impl AsMut<[u8]>,
-    src: impl AsRef<[u8]>,
+    dst: &mut [u8],
+    src: &[u8],
 ) -> Result<usize, Base16Error> {
-    let src = src.as_ref();
     if src.is_empty() {
         return Ok(0);
     }
 
     let output_len = src.len() * 2;
 
-    let dst = dst.as_mut();
     if dst.len() < output_len {
         return Err(Base16Error::DestinationBufferTooSmall {
             needed: output_len,

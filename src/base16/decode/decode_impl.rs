@@ -9,11 +9,12 @@ pub fn decode(
     data: impl AsRef<[u8]>,
 ) -> Result<Base16DecodeOutput, Base16Error> {
     let data = data.as_ref();
+
     if data.is_empty() {
         return Ok(Base16DecodeOutput { inner: Vec::new() });
     }
 
-    if !data.len().is_multiple_of(2) {
+    if data.len() % 2 != 0 {
         return Err(Base16Error::InvalidLength(data.len()));
     }
 
@@ -23,5 +24,6 @@ pub fn decode(
     unsafe { output.set_len(output_len) };
 
     let _ = decode_into(config, &mut output, data)?;
+
     Ok(Base16DecodeOutput { inner: output })
 }

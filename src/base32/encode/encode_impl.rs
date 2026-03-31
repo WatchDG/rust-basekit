@@ -5,6 +5,7 @@ use super::output::Base32EncodeOutput;
 #[inline]
 pub fn encode(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32EncodeOutput {
     let data = data.as_ref();
+
     if data.is_empty() {
         return Base32EncodeOutput { inner: Vec::new() };
     }
@@ -25,5 +26,6 @@ pub fn encode(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32Enco
     unsafe { output.set_len(output_len) };
 
     let _ = encode_into(config, &mut output, data).unwrap();
+
     Base32EncodeOutput { inner: output }
 }
