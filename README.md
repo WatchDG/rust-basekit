@@ -8,7 +8,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-basekit = "0.2.0"
+basekit = "0.3.0"
 ```
 
 ## Usage
