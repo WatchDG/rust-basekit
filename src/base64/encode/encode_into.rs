@@ -14,7 +14,7 @@ pub fn encode_into(
 
     let full_groups_count = src.len() / 3;
     let remainder = src.len() % 3;
-    
+
     let tail_output_len = match (remainder, config.padding.is_some()) {
         (0, _) => 0,
         (1, true) => 4,
@@ -23,7 +23,7 @@ pub fn encode_into(
         (2, false) => 3,
         _ => unreachable!(),
     };
-    
+
     let output_len = full_groups_count * 4 + tail_output_len;
 
     if dst.len() < output_len {

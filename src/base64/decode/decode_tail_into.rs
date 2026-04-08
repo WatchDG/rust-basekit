@@ -4,16 +4,16 @@ use crate::base64::error::Base64Error;
 #[inline(always)]
 pub(crate) unsafe fn decode_tail_into(
     config: &Base64DecodeConfig,
-    chunk: &[u8],
-    chunk_start: usize,
-    padding_count: usize,
     dst: &mut [u8],
     dst_offset: usize,
+    tail: &[u8],
+    src_offset: usize,
+    padding_count: usize,
 ) -> Result<usize, Base64Error> {
     let decode_table = config.decode_table;
     let mut indices: [i8; 4] = [0; 4];
-    for (j, &byte) in chunk.iter().enumerate() {
-        let pos = chunk_start + j;
+    for (j, &byte) in tail.iter().enumerate() {
+        let pos = src_offset + j;
 
         if config.padding == Some(byte) {
             let expected_min_pos = 4 - padding_count;
