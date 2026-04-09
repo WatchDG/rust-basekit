@@ -52,10 +52,10 @@ pub(crate) unsafe fn avx512_decode_full_groups_into(
             for group_offset in (0..64usize).step_by(8) {
                 written += decode_full_group_into(
                     config,
-                    &src[src_offset + group_offset..src_offset + group_offset + 8],
-                    src_offset + group_offset,
                     dst,
                     dst_offset + written,
+                    &src[src_offset + group_offset..src_offset + group_offset + 8],
+                    src_offset + group_offset,
                 )?;
             }
             dst_offset += written;
@@ -104,10 +104,10 @@ pub(crate) unsafe fn avx512_decode_full_groups_into(
             for group_offset in (0..64usize).step_by(8) {
                 written += decode_full_group_into(
                     config,
-                    &src[src_offset + group_offset..src_offset + group_offset + 8],
-                    src_offset + group_offset,
                     dst,
                     dst_offset + written,
+                    &src[src_offset + group_offset..src_offset + group_offset + 8],
+                    src_offset + group_offset,
                 )?;
             }
             dst_offset += written;

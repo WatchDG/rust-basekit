@@ -5,21 +5,21 @@ use crate::base32::error::Base32Error;
 #[allow(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn decode_full_group_into(
     config: &Base32DecodeConfig,
-    chunk: &[u8],
-    chunk_start: usize,
     dst: &mut [u8],
     dst_offset: usize,
+    src: &[u8],
+    src_offset: usize,
 ) -> Result<usize, Base32Error> {
-    debug_assert_eq!(chunk.len(), 8);
+    debug_assert_eq!(src.len(), 8);
 
-    let c0 = chunk[0];
-    let c1 = chunk[1];
-    let c2 = chunk[2];
-    let c3 = chunk[3];
-    let c4 = chunk[4];
-    let c5 = chunk[5];
-    let c6 = chunk[6];
-    let c7 = chunk[7];
+    let c0 = src[0];
+    let c1 = src[1];
+    let c2 = src[2];
+    let c3 = src[3];
+    let c4 = src[4];
+    let c5 = src[5];
+    let c6 = src[6];
+    let c7 = src[7];
 
     if let Some(padding) = config.padding {
         if c0 == padding
@@ -53,7 +53,7 @@ pub(crate) unsafe fn decode_full_group_into(
         } else {
             7
         };
-        return Err(Base32Error::InvalidCharacter(chunk[pos], chunk_start + pos));
+        return Err(Base32Error::InvalidCharacter(src[pos], src_offset + pos));
     }
 
     let decode_table = config.decode_table;
@@ -84,7 +84,7 @@ pub(crate) unsafe fn decode_full_group_into(
         } else {
             7
         };
-        return Err(Base32Error::InvalidCharacter(chunk[pos], chunk_start + pos));
+        return Err(Base32Error::InvalidCharacter(src[pos], src_offset + pos));
     }
 
     let b0 = ((i0 as u32) << 3) | ((i1 as u32) >> 2);
