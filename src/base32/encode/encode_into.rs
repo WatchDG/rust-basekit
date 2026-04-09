@@ -14,9 +14,9 @@ pub fn encode_into(
         return Ok(0);
     }
 
-    let full_chunks = src.len() / 5;
+    let full_groups_count = src.len() / 5;
     let remainder = src.len() % 5;
-    let output_len = full_chunks * 8
+    let output_len = full_groups_count * 8
         + match remainder {
             0 => 0,
             1 => 8,
@@ -33,9 +33,9 @@ pub fn encode_into(
         });
     }
 
-    let full_src = &src[..full_chunks * 5];
+    let full_src = &src[..full_groups_count * 5];
     let tail_src = if remainder > 0 {
-        Some(&src[full_chunks * 5..])
+        Some(&src[full_groups_count * 5..])
     } else {
         None
     };

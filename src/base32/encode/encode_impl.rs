@@ -10,9 +10,9 @@ pub fn encode(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32Enco
         return Base32EncodeOutput { inner: Vec::new() };
     }
 
-    let full_chunks = data.len() / 5;
+    let full_groups_count = data.len() / 5;
     let remainder = data.len() % 5;
-    let output_len = full_chunks * 8
+    let output_len = full_groups_count * 8
         + match remainder {
             0 => 0,
             1 => 8,

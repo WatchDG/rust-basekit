@@ -135,8 +135,8 @@ pub(crate) fn encode_full_groups_into(
         }
     }
 
-    for chunk in src[src_offset..].chunks_exact(3) {
-        dst_offset += encode_full_group_into(config, &mut dst[dst_offset..], chunk)?;
+    for full_group in src[src_offset..].chunks_exact(3) {
+        dst_offset += encode_full_group_into(config, &mut dst[dst_offset..], full_group)?;
     }
 
     Ok(dst_offset)

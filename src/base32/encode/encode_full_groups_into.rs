@@ -47,8 +47,8 @@ pub(crate) fn encode_full_groups_into(
         return Ok(0);
     }
 
-    let full_chunks = src.len() / 5;
-    let output_len = full_chunks * 8;
+    let full_groups_count = src.len() / 5;
+    let output_len = full_groups_count * 8;
 
     if dst.len() < output_len {
         return Err(Base32Error::DestinationBufferTooSmall {
@@ -152,8 +152,8 @@ pub(crate) fn encode_full_groups_into(
         }
     }
 
-    for chunk in src[src_offset..].chunks_exact(5) {
-        dst_offset += encode_full_group_into(config, &mut dst[dst_offset..], chunk)?;
+    for full_group in src[src_offset..].chunks_exact(5) {
+        dst_offset += encode_full_group_into(config, &mut dst[dst_offset..], full_group)?;
     }
 
     Ok(dst_offset)
