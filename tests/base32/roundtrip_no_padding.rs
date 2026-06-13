@@ -1,55 +1,8 @@
-use basekit::base32::{
-    ALPHABET_BASE32, Base32DecodeConfig, Base32EncodeConfig, DECODE_TABLE_BASE32, decode,
-    decode_into, encode, encode_into,
+use crate::common::{
+    PATTERNS_2B, PATTERNS_3B,
+    base32::{roundtrip_no_padding, roundtrip_no_padding_into},
+    seed_data,
 };
-
-fn create_encode_config() -> Base32EncodeConfig {
-    Base32EncodeConfig::new(ALPHABET_BASE32, None)
-}
-
-fn create_decode_config() -> Base32DecodeConfig {
-    Base32DecodeConfig::new(DECODE_TABLE_BASE32, None)
-}
-
-fn roundtrip_no_padding(original: &[u8]) {
-    let enc_config = create_encode_config();
-    let dec_config = create_decode_config();
-
-    let encoded = encode(&enc_config, original);
-    let decoded = Vec::<u8>::from(decode(&dec_config, &Vec::<u8>::from(encoded)).unwrap());
-
-    assert_eq!(
-        decoded, original,
-        "Round-trip no-padding failed for {:?}",
-        original
-    );
-}
-
-fn roundtrip_no_padding_into(original: &[u8]) {
-    let enc_config = create_encode_config();
-    let dec_config = create_decode_config();
-
-    let max_encoded_len = (original.len() / 5 + 1) * 8;
-    let mut encoded_dst = vec![0u8; max_encoded_len];
-    let actual_encoded_len = encode_into(&enc_config, &mut encoded_dst, original).unwrap();
-
-    let expected =
-        Vec::<u8>::from(decode(&dec_config, &encoded_dst[..actual_encoded_len]).unwrap());
-    let mut decoded_dst = vec![0u8; expected.len()];
-    let actual_decoded_len = decode_into(
-        &dec_config,
-        &mut decoded_dst,
-        &encoded_dst[..actual_encoded_len],
-    )
-    .unwrap();
-
-    assert_eq!(
-        &decoded_dst[..actual_decoded_len],
-        original,
-        "Round-trip no-padding (into) failed for {:?}",
-        original
-    );
-}
 
 #[test]
 fn test_roundtrip_no_padding_empty() {
@@ -62,6 +15,22 @@ fn test_roundtrip_no_padding_single_byte() {
     for i in 0u8..=255 {
         roundtrip_no_padding(&[i]);
         roundtrip_no_padding_into(&[i]);
+    }
+}
+
+#[test]
+fn test_roundtrip_no_padding_two_bytes() {
+    for p in PATTERNS_2B {
+        roundtrip_no_padding(p);
+        roundtrip_no_padding_into(p);
+    }
+}
+
+#[test]
+fn test_roundtrip_no_padding_three_bytes() {
+    for p in PATTERNS_3B {
+        roundtrip_no_padding(p);
+        roundtrip_no_padding_into(p);
     }
 }
 
@@ -81,10 +50,15 @@ fn test_roundtrip_no_padding_strings() {
 
 #[test]
 fn test_roundtrip_no_padding_consistency_with_padded() {
+    use basekit::base32::{
+        ALPHABET_BASE32, Base32DecodeConfig, Base32EncodeConfig, DECODE_TABLE_BASE32, decode,
+        encode,
+    };
+
     let enc_config_pad = Base32EncodeConfig::new(ALPHABET_BASE32, Some(b'='));
     let dec_config_pad = Base32DecodeConfig::new(DECODE_TABLE_BASE32, Some(b'='));
-    let enc_config_no_pad = create_encode_config();
-    let dec_config_no_pad = create_decode_config();
+    let enc_config_no_pad = Base32EncodeConfig::new(ALPHABET_BASE32, None);
+    let dec_config_no_pad = Base32DecodeConfig::new(DECODE_TABLE_BASE32, None);
 
     let data = b"Hello, World! The quick brown fox jumps over the lazy dog.";
 
@@ -145,7 +119,7 @@ fn test_roundtrip_no_padding_progressive_sizes() {
 fn test_roundtrip_no_padding_simd_boundary_sizes() {
     // SIMD encode paths process blocks of 10/20/40 input bytes.
     for size in [10, 20, 40] {
-        let data: Vec<u8> = (0..size).map(|i| ((i * 17 + 42) % 256) as u8).collect();
+        let data: Vec<u8> = seed_data(size);
         roundtrip_no_padding(&data);
         roundtrip_no_padding_into(&data);
     }

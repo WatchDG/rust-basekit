@@ -1,3 +1,4 @@
+use crate::common::assert_untouched;
 use basekit::base16::{ALPHABET_BASE16_UPPERCASE, Base16EncodeConfig, Base16Error, encode_into};
 
 fn create_config() -> Base16EncodeConfig {
@@ -71,4 +72,17 @@ fn test_roundtrip() {
     let _ = encode_into(&config, &mut output, data);
     let encoded = String::from_utf8(output).unwrap();
     assert_eq!(encoded, "48656C6C6F2C20576F726C6421");
+}
+
+#[test]
+fn test_no_write_beyond_returned_length() {
+    const MARKER: u8 = 0xCC;
+
+    let config = create_config();
+    let mut output = vec![MARKER; 16];
+    let len = encode_into(&config, &mut output, &[0xDE, 0xAD, 0xBE, 0xEF]).unwrap();
+
+    assert_eq!(len, 8);
+    assert_eq!(&output[..len], b"DEADBEEF");
+    assert_untouched(&output, MARKER, len);
 }

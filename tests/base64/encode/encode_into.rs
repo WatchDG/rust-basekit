@@ -1,3 +1,4 @@
+use crate::common::{assert_untouched, base64::exact_encode_into_no_padding, seed_data};
 use basekit::base64::{ALPHABET_BASE64, Base64EncodeConfig, encode, encode_into};
 
 fn create_config() -> Base64EncodeConfig {
@@ -154,21 +155,6 @@ fn test_consistency_with_encode() {
 
 // --- No-padding / exact-buffer coverage ---
 
-fn create_config_no_padding() -> Base64EncodeConfig {
-    Base64EncodeConfig::new(ALPHABET_BASE64, None)
-}
-
-fn exact_encode_into_no_padding(data: &[u8]) {
-    let config = create_config_no_padding();
-    let expected = Vec::<u8>::from(encode(&config, data));
-
-    let mut dst = vec![0u8; expected.len()];
-    let len = encode_into(&config, &mut dst, data).unwrap();
-
-    assert_eq!(len, expected.len());
-    assert_eq!(&dst[..len], &expected[..]);
-}
-
 #[test]
 fn test_no_padding_exact_buffer_all_tail_lengths() {
     for size in 1..=9 {
@@ -181,8 +167,7 @@ fn test_no_padding_exact_buffer_all_tail_lengths() {
 fn test_no_padding_exact_buffer_simd_boundary_sizes() {
     // SIMD encode paths process blocks of 12/24/48 input bytes.
     for size in [12, 24, 48] {
-        let data: Vec<u8> = (0..size).map(|i| ((i * 17 + 42) % 256) as u8).collect();
-        exact_encode_into_no_padding(&data);
+        exact_encode_into_no_padding(&seed_data(size));
     }
 }
 
@@ -190,4 +175,30 @@ fn test_no_padding_exact_buffer_simd_boundary_sizes() {
 fn test_no_padding_exact_buffer_large() {
     let data: Vec<u8> = (0..1024).map(|i| (i % 256) as u8).collect();
     exact_encode_into_no_padding(&data);
+}
+
+#[test]
+fn test_no_write_beyond_returned_length_padded() {
+    const MARKER: u8 = 0xCC;
+
+    let config = create_config();
+    let mut dst = vec![MARKER; 32];
+    let len = encode_into(&config, &mut dst, b"f").unwrap();
+
+    assert_eq!(len, 4);
+    assert_eq!(&dst[..len], b"Zg==");
+    assert_untouched(&dst, MARKER, len);
+}
+
+#[test]
+fn test_no_write_beyond_returned_length_no_padding() {
+    const MARKER: u8 = 0xCC;
+
+    let config = Base64EncodeConfig::new(ALPHABET_BASE64, None);
+    let mut dst = vec![MARKER; 32];
+    let len = encode_into(&config, &mut dst, b"fo").unwrap();
+
+    assert_eq!(len, 3);
+    assert_eq!(&dst[..len], b"Zm8");
+    assert_untouched(&dst, MARKER, len);
 }

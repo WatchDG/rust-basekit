@@ -1,3 +1,4 @@
+use crate::common::assert_untouched;
 use basekit::base32::{Base32DecodeConfig, Base32Error, DECODE_TABLE_BASE32, decode_into};
 
 fn create_config() -> Base32DecodeConfig {
@@ -51,4 +52,17 @@ fn test_decode_into_single_byte() {
     let len = decode_into(&config, &mut dst, b"MY======").unwrap();
     assert_eq!(len, 1);
     assert_eq!(dst[0], 102);
+}
+
+#[test]
+fn test_no_write_beyond_returned_length() {
+    const MARKER: u8 = 0xCC;
+
+    let config = create_config();
+    let mut dst = vec![MARKER; 32];
+    let len = decode_into(&config, &mut dst, b"MY======").unwrap();
+
+    assert_eq!(len, 1);
+    assert_eq!(dst[0], 102);
+    assert_untouched(&dst, MARKER, len);
 }

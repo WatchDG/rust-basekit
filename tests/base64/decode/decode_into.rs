@@ -1,3 +1,4 @@
+use crate::common::assert_untouched;
 use basekit::base64::{Base64DecodeConfig, Base64Error, DECODE_TABLE_BASE64, decode, decode_into};
 
 fn create_config() -> Base64DecodeConfig {
@@ -269,4 +270,17 @@ fn test_consistency_with_decode() {
 
     assert_eq!(len, result.len());
     assert_eq!(&dst[..len], &result[..]);
+}
+
+#[test]
+fn test_no_write_beyond_returned_length() {
+    const MARKER: u8 = 0xCC;
+
+    let config = create_config();
+    let mut dst = vec![MARKER; 32];
+    let len = decode_into(&config, &mut dst, b"Zg==").unwrap();
+
+    assert_eq!(len, 1);
+    assert_eq!(&dst[..len], &[102]);
+    assert_untouched(&dst, MARKER, len);
 }

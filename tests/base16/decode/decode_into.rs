@@ -1,3 +1,4 @@
+use crate::common::assert_untouched;
 use basekit::base16::{
     Base16DecodeConfig, Base16Error, DECODE_TABLE_BASE16_UPPERCASE, decode_into,
 };
@@ -92,4 +93,17 @@ fn test_roundtrip() {
     let mut output = vec![0u8; data.len()];
     let _ = decode_into(&config, &mut output, encoded.as_bytes()).unwrap();
     assert_eq!(&output[..], data);
+}
+
+#[test]
+fn test_no_write_beyond_returned_length() {
+    const MARKER: u8 = 0xCC;
+
+    let config = create_config();
+    let mut output = vec![MARKER; 16];
+    let len = decode_into(&config, &mut output, b"0AFF").unwrap();
+
+    assert_eq!(len, 2);
+    assert_eq!(&output[..len], &[0x0A, 0xFF]);
+    assert_untouched(&output, MARKER, len);
 }

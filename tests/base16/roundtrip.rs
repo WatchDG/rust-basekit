@@ -1,50 +1,8 @@
-use basekit::base16::{
-    ALPHABET_BASE16_UPPERCASE, Base16DecodeConfig, Base16EncodeConfig,
-    DECODE_TABLE_BASE16_UPPERCASE, decode, decode_into, encode, encode_into,
+use crate::common::{
+    PATTERNS_2B, PATTERNS_3B, STRINGS,
+    base16::{roundtrip, roundtrip_into},
+    seed_data,
 };
-
-fn create_encode_config() -> Base16EncodeConfig {
-    Base16EncodeConfig::new(ALPHABET_BASE16_UPPERCASE)
-}
-
-fn create_decode_config() -> Base16DecodeConfig {
-    Base16DecodeConfig::new(DECODE_TABLE_BASE16_UPPERCASE)
-}
-
-fn roundtrip(original: &[u8]) {
-    let enc_config = create_encode_config();
-    let dec_config = create_decode_config();
-
-    let encoded = encode(&enc_config, original);
-    let decoded = Vec::<u8>::from(decode(&dec_config, &Vec::<u8>::from(encoded)).unwrap());
-
-    assert_eq!(decoded, original, "Round-trip failed for {:?}", original);
-}
-
-fn roundtrip_into(original: &[u8]) {
-    let enc_config = create_encode_config();
-    let dec_config = create_decode_config();
-
-    let encoded_len = original.len() * 2;
-    let mut encoded_dst = vec![0u8; encoded_len];
-    let actual_encoded_len = encode_into(&enc_config, &mut encoded_dst, original).unwrap();
-
-    let decoded_len = actual_encoded_len / 2;
-    let mut decoded_dst = vec![0u8; decoded_len];
-    let actual_decoded_len = decode_into(
-        &dec_config,
-        &mut decoded_dst,
-        &encoded_dst[..actual_encoded_len],
-    )
-    .unwrap();
-
-    assert_eq!(
-        &decoded_dst[..actual_decoded_len],
-        original,
-        "Round-trip failed for {:?}",
-        original
-    );
-}
 
 #[test]
 fn test_roundtrip_empty() {
@@ -62,35 +20,17 @@ fn test_roundtrip_single_byte() {
 
 #[test]
 fn test_roundtrip_two_bytes() {
-    let patterns: Vec<Vec<u8>> = vec![
-        vec![0x00, 0x00],
-        vec![0xFF, 0xFF],
-        vec![0xAA, 0x55],
-        vec![0x12, 0x34],
-        vec![0x00, 0x01],
-        vec![0x80, 0x7F],
-        vec![0xDE, 0xAD],
-        vec![0xBE, 0xEF],
-    ];
-    for p in patterns {
-        roundtrip(&p);
-        roundtrip_into(&p);
+    for p in PATTERNS_2B {
+        roundtrip(p);
+        roundtrip_into(p);
     }
 }
 
 #[test]
 fn test_roundtrip_three_bytes() {
-    let patterns: Vec<Vec<u8>> = vec![
-        vec![0, 0, 0],
-        vec![0xFF, 0xFF, 0xFF],
-        vec![0x00, 0xFF, 0x00],
-        vec![0xAA, 0x55, 0xAA],
-        vec![1, 2, 3],
-        vec![255, 254, 253],
-    ];
-    for p in patterns {
-        roundtrip(&p);
-        roundtrip_into(&p);
+    for p in PATTERNS_3B {
+        roundtrip(p);
+        roundtrip_into(p);
     }
 }
 
@@ -108,16 +48,7 @@ fn test_roundtrip_four_bytes() {
 
 #[test]
 fn test_roundtrip_strings() {
-    let strings = [
-        "Hello",
-        "Hello!",
-        "Hello World",
-        "Hello, World!",
-        "The quick brown fox jumps over the lazy dog",
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-        "Spaces and\ttabs\nand\nnewlines",
-    ];
-    for s in strings {
+    for s in STRINGS {
         roundtrip(s.as_bytes());
         roundtrip_into(s.as_bytes());
     }
@@ -177,10 +108,10 @@ fn test_roundtrip_alternating_pattern() {
 
 #[test]
 fn test_roundtrip_random_like() {
-    let seed_data: Vec<u8> = (0..1000).map(|i| ((i * 17 + 42) % 256) as u8).collect();
+    let seed = seed_data(1000);
 
     for size in [1, 2, 3, 4, 5, 10, 50, 100, 255, 256, 500, 1000] {
-        let data: Vec<u8> = seed_data[..size].to_vec();
+        let data: Vec<u8> = seed[..size].to_vec();
         roundtrip(&data);
         roundtrip_into(&data);
     }
