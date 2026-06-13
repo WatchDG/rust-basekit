@@ -150,3 +150,43 @@ fn test_consistency_with_encode() {
     assert_eq!(len, result_vec.len());
     assert_eq!(&dst[..len], &result_vec[..]);
 }
+
+// --- No-padding / exact-buffer coverage ---
+
+fn create_config_no_padding() -> Base64EncodeConfig {
+    Base64EncodeConfig::new(ALPHABET_BASE64, None)
+}
+
+fn exact_encode_into_no_padding(data: &[u8]) {
+    let config = create_config_no_padding();
+    let expected = Vec::<u8>::from(encode(&config, data));
+
+    let mut dst = vec![0u8; expected.len()];
+    let len = encode_into(&config, &mut dst, data).unwrap();
+
+    assert_eq!(len, expected.len());
+    assert_eq!(&dst[..len], &expected[..]);
+}
+
+#[test]
+fn test_no_padding_exact_buffer_all_tail_lengths() {
+    for size in 1..=9 {
+        let data: Vec<u8> = (0..size).map(|i| ((i * 31 + 7) % 256) as u8).collect();
+        exact_encode_into_no_padding(&data);
+    }
+}
+
+#[test]
+fn test_no_padding_exact_buffer_simd_boundary_sizes() {
+    // SIMD encode paths process blocks of 12/24/48 input bytes.
+    for size in [12, 24, 48] {
+        let data: Vec<u8> = (0..size).map(|i| ((i * 17 + 42) % 256) as u8).collect();
+        exact_encode_into_no_padding(&data);
+    }
+}
+
+#[test]
+fn test_no_padding_exact_buffer_large() {
+    let data: Vec<u8> = (0..1024).map(|i| (i % 256) as u8).collect();
+    exact_encode_into_no_padding(&data);
+}
