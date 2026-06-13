@@ -26,9 +26,9 @@ impl CpuFeatures {
                 avx2,
                 avx512f,
                 avx512bw,
-                feature_simd_ssse3: ssse3,
-                feature_simd_avx2: avx2,
-                feature_simd_avx512: avx512f && avx512bw,
+                feature_simd_ssse3: cfg!(feature = "simd-ssse3") && ssse3,
+                feature_simd_avx2: cfg!(feature = "simd-avx2") && avx2,
+                feature_simd_avx512: cfg!(feature = "simd-avx512") && avx512f && avx512bw,
             }
         }
         #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
