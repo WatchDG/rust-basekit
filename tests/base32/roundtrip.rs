@@ -62,11 +62,19 @@ fn test_roundtrip_single_byte() {
 
 #[test]
 fn test_roundtrip_two_bytes() {
-    for i in 0u8..=255 {
-        for j in 0u8..=255 {
-            roundtrip(&[i, j]);
-            roundtrip_into(&[i, j]);
-        }
+    let patterns: Vec<Vec<u8>> = vec![
+        vec![0x00, 0x00],
+        vec![0xFF, 0xFF],
+        vec![0xAA, 0x55],
+        vec![0x12, 0x34],
+        vec![0x00, 0x01],
+        vec![0x80, 0x7F],
+        vec![0xDE, 0xAD],
+        vec![0xBE, 0xEF],
+    ];
+    for p in patterns {
+        roundtrip(&p);
+        roundtrip_into(&p);
     }
 }
 

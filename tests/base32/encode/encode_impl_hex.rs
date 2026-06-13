@@ -33,6 +33,7 @@ fn test_large_random() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn test_1mb_random() {
     let config = create_config();
     let data: Vec<u8> = (0..1024 * 1024).map(|i| (i % 256) as u8).collect();
