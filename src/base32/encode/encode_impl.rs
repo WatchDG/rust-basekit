@@ -12,15 +12,19 @@ pub fn encode(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32Enco
 
     let full_groups_count = data.len() / 5;
     let remainder = data.len() % 5;
-    let output_len = full_groups_count * 8
-        + match remainder {
-            0 => 0,
-            1 => 8,
-            2 => 8,
-            3 => 8,
-            4 => 8,
-            _ => unreachable!(),
-        };
+    let tail_output_len = match (remainder, config.padding.is_some()) {
+        (0, _) => 0,
+        (1, true) => 8,
+        (1, false) => 2,
+        (2, true) => 8,
+        (2, false) => 4,
+        (3, true) => 8,
+        (3, false) => 5,
+        (4, true) => 8,
+        (4, false) => 7,
+        _ => unreachable!(),
+    };
+    let output_len = full_groups_count * 8 + tail_output_len;
 
     let mut output = Vec::with_capacity(output_len);
     unsafe { output.set_len(output_len) };

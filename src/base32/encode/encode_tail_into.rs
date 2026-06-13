@@ -23,7 +23,11 @@ pub fn encode_tail_into(
         4 => 7,
         _ => unreachable!(),
     };
-    let output_len = output_len_with_padding;
+    let output_len = if config.padding.is_some() {
+        output_len_with_padding
+    } else {
+        output_len_without_padding
+    };
 
     if dst.len() < output_len {
         return Err(Base32Error::DestinationBufferTooSmall {

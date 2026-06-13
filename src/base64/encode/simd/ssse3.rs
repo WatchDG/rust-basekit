@@ -36,7 +36,7 @@ pub(crate) fn ssse3_encode_full_groups_into(
     let mut src_offset = 0usize;
     let mut dst_offset = 0usize;
 
-    while src_offset + 12 <= src.len() {
+    while src_offset + 16 <= src.len() {
         unsafe {
             let src_ptr = src.as_ptr().add(src_offset);
             let dst_ptr = dst.as_mut_ptr().add(dst_offset);

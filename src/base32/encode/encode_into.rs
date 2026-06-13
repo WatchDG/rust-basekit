@@ -16,15 +16,21 @@ pub fn encode_into(
 
     let full_groups_count = src.len() / 5;
     let remainder = src.len() % 5;
-    let output_len = full_groups_count * 8
-        + match remainder {
-            0 => 0,
-            1 => 8,
-            2 => 8,
-            3 => 8,
-            4 => 8,
-            _ => unreachable!(),
-        };
+
+    let tail_output_len = match (remainder, config.padding.is_some()) {
+        (0, _) => 0,
+        (1, true) => 8,
+        (1, false) => 2,
+        (2, true) => 8,
+        (2, false) => 4,
+        (3, true) => 8,
+        (3, false) => 5,
+        (4, true) => 8,
+        (4, false) => 7,
+        _ => unreachable!(),
+    };
+
+    let output_len = full_groups_count * 8 + tail_output_len;
 
     if dst.len() < output_len {
         return Err(Base32Error::DestinationBufferTooSmall {
@@ -34,7 +40,7 @@ pub fn encode_into(
     }
 
     let full_src = &src[..full_groups_count * 5];
-    let tail_src = if remainder > 0 {
+    let tail_src = if tail_output_len > 0 {
         Some(&src[full_groups_count * 5..])
     } else {
         None
@@ -47,8 +53,8 @@ pub fn encode_into(
     }
 
     if let Some(tail) = tail_src {
-        encode_tail_into(config, &mut dst[offset..], tail)?;
+        offset += encode_tail_into(config, &mut dst[offset..], tail)?;
     }
 
-    Ok(output_len)
+    Ok(offset)
 }
