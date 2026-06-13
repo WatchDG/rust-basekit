@@ -21,18 +21,17 @@ pub(crate) unsafe fn decode_full_group_into(
     let c6 = src[6];
     let c7 = src[7];
 
-    if let Some(padding) = config.padding {
-        if c0 == padding
+    if let Some(padding) = config.padding
+        && (c0 == padding
             || c1 == padding
             || c2 == padding
             || c3 == padding
             || c4 == padding
             || c5 == padding
             || c6 == padding
-            || c7 == padding
-        {
-            return Err(Base32Error::InvalidPadding);
-        }
+            || c7 == padding)
+    {
+        return Err(Base32Error::InvalidPadding);
     }
 
     if (c0 | c1 | c2 | c3 | c4 | c5 | c6 | c7) & 0x80 != 0 {

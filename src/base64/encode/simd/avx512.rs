@@ -10,7 +10,7 @@ use crate::base64::error::Base64Error;
 /// Each 48 bytes → 64 base64 characters. Tail/padding is handled by the caller.
 #[target_feature(enable = "avx512f,avx512bw")]
 #[inline]
-pub(crate) fn avx512_encode_full_groups_into(
+pub(crate) unsafe fn avx512_encode_full_groups_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
@@ -103,6 +103,7 @@ pub(crate) fn avx512_encode_full_groups_into(
 #[target_feature(enable = "avx512f,avx512bw")]
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
+#[allow(clippy::too_many_arguments)]
 unsafe fn avx512_encode_block(
     dst: *mut u8,
     src: *const u8,

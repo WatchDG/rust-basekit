@@ -2,6 +2,7 @@ use super::super::config::Base64DecodeConfig;
 use super::super::error::Base64Error;
 use super::decode_into::decode_into;
 use super::output::Base64DecodeOutput;
+use crate::utils::init_vec_with;
 
 #[inline]
 pub fn decode(
@@ -35,10 +36,7 @@ pub fn decode(
 
     let output_len = (clean_len * 3) / 4;
 
-    let mut output = Vec::with_capacity(output_len);
-    unsafe { output.set_len(output_len) };
-
-    let _ = decode_into(config, &mut output, data)?;
+    let output = unsafe { init_vec_with(output_len, |buf| decode_into(config, buf, data))? };
 
     Ok(Base64DecodeOutput { inner: output })
 }

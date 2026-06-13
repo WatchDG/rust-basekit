@@ -1,6 +1,7 @@
 use super::super::config::Base64EncodeConfig;
 use super::encode_into_slice;
 use super::output::Base64EncodeOutput;
+use crate::utils::init_vec_with;
 
 #[inline]
 pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64EncodeOutput {
@@ -22,9 +23,6 @@ pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64Enco
             _ => unreachable!(),
         };
 
-    let mut output = Vec::with_capacity(output_len);
-    unsafe { output.set_len(output_len) };
-
     let full_groups_src = if full_groups_count > 0 {
         Some(&data[..full_groups_count * 3])
     } else {
@@ -36,7 +34,12 @@ pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64Enco
         None
     };
 
-    let _ = encode_into_slice(config, &mut output, full_groups_src, tail_src).unwrap();
+    let output = unsafe {
+        init_vec_with(output_len, |buf| {
+            encode_into_slice(config, buf, full_groups_src, tail_src)
+        })
+        .unwrap()
+    };
 
     Base64EncodeOutput { inner: output }
 }

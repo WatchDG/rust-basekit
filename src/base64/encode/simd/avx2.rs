@@ -8,7 +8,7 @@ use crate::base64::error::Base64Error;
 
 #[target_feature(enable = "avx2")]
 #[inline]
-pub(crate) fn avx2_encode_full_groups_into(
+pub(crate) unsafe fn avx2_encode_full_groups_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
@@ -75,6 +75,7 @@ pub(crate) fn avx2_encode_full_groups_into(
 #[target_feature(enable = "avx2")]
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
+#[allow(clippy::too_many_arguments)]
 unsafe fn avx2_encode_block(
     shuf_mask: __m256i,
     mask0: __m256i,

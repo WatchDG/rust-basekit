@@ -10,7 +10,7 @@ use crate::base64::error::Base64Error;
 /// Each 12 bytes → 16 base64 characters. Tail/padding is handled by the caller.
 #[target_feature(enable = "ssse3")]
 #[inline]
-pub(crate) fn ssse3_encode_full_groups_into(
+pub(crate) unsafe fn ssse3_encode_full_groups_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],
@@ -87,6 +87,7 @@ pub(crate) fn ssse3_encode_full_groups_into(
 #[target_feature(enable = "ssse3")]
 #[inline]
 #[allow(unsafe_op_in_unsafe_fn)]
+#[allow(clippy::too_many_arguments)]
 unsafe fn ssse3_encode_block(
     dst: *mut u8,
     src: *const u8,
