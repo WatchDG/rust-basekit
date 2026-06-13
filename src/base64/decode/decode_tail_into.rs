@@ -10,6 +10,24 @@ pub(crate) unsafe fn decode_tail_into(
     src_offset: usize,
     padding_count: usize,
 ) -> Result<usize, Base64Error> {
+    let tail_len = tail.len();
+
+    if tail_len == 0 {
+        return Ok(0);
+    }
+
+    let bytes_written = match padding_count {
+        2 => 1,
+        1 => 2,
+        0 => match tail_len {
+            1 => 0,
+            2 => 1,
+            3 => 2,
+            _ => panic!("invalid unpadded base64 tail length: {}", tail_len),
+        },
+        _ => panic!("invalid base64 padding count: {}", padding_count),
+    };
+
     let decode_table = config.decode_table;
     let mut indices: [i8; 4] = [0; 4];
     for (j, &byte) in tail.iter().enumerate() {
@@ -33,33 +51,29 @@ pub(crate) unsafe fn decode_tail_into(
         }
     }
 
-    let triple = ((indices[0] as u32) << 18)
+    let three_bytes = ((indices[0] as u32) << 18)
         | ((indices[1] as u32) << 12)
         | ((indices[2] as u32) << 6)
         | (indices[3] as u32);
 
-    let bytes_written = match padding_count {
-        2 => 1,
-        1 => 2,
-        _ => 3,
-    };
-
     unsafe {
         let ptr = dst.as_mut_ptr().add(dst_offset);
 
-        match padding_count {
-            2 => {
-                ptr.write((triple >> 16) as u8);
-            }
+        match bytes_written {
+            0 => {}
             1 => {
-                ptr.write((triple >> 16) as u8);
-                ptr.offset(1).write((triple >> 8) as u8);
+                ptr.write((three_bytes >> 16) as u8);
             }
-            _ => {
-                ptr.write((triple >> 16) as u8);
-                ptr.offset(1).write((triple >> 8) as u8);
-                ptr.offset(2).write(triple as u8);
+            2 => {
+                ptr.write((three_bytes >> 16) as u8);
+                ptr.offset(1).write((three_bytes >> 8) as u8);
             }
+            3 => {
+                ptr.write((three_bytes >> 16) as u8);
+                ptr.offset(1).write((three_bytes >> 8) as u8);
+                ptr.offset(2).write(three_bytes as u8);
+            }
+            _ => panic!("invalid bytes_written value: {}", bytes_written),
         }
     }
 
