@@ -3,7 +3,8 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use crate::base16::config::Base16DecodeConfig;
+use super::super::super::config::Base16DecodeConfig;
+use super::super::super::error::Base16Error;
 
 /// Decodes base16 (hex) characters into bytes using AVX-512.
 ///
@@ -20,7 +21,7 @@ pub(crate) unsafe fn avx512_decode_into(
     config: &Base16DecodeConfig,
     dst: &mut [u8],
     src: &[u8],
-) -> usize {
+) -> Result<usize, Base16Error> {
     // Broadcast each 16-byte slice of the 128-entry decode table into all four lanes.
     let table_ptr = config.decode_table.as_ptr() as *const __m128i;
     let tbl0 = _mm512_broadcast_i32x4(_mm_loadu_si128(table_ptr));
@@ -102,5 +103,5 @@ pub(crate) unsafe fn avx512_decode_into(
         dst_offset += 32;
     }
 
-    dst_offset
+    Ok(dst_offset)
 }

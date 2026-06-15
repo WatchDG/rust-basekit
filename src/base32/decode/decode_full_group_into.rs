@@ -1,5 +1,5 @@
-use crate::base32::config::Base32DecodeConfig;
-use crate::base32::error::Base32Error;
+use super::super::config::Base32DecodeConfig;
+use super::super::error::Base32Error;
 
 #[inline(always)]
 #[allow(unsafe_op_in_unsafe_fn)]

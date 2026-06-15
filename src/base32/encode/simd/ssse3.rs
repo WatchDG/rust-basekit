@@ -3,8 +3,8 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use crate::base32::config::Base32EncodeConfig;
-use crate::base32::error::Base32Error;
+use super::super::super::config::Base32EncodeConfig;
+use super::super::super::error::Base32Error;
 
 /// Encodes full 5-byte groups into base32 characters using SSSE3.
 ///

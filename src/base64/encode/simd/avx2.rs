@@ -3,8 +3,8 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use crate::base64::config::Base64EncodeConfig;
-use crate::base64::error::Base64Error;
+use super::super::super::config::Base64EncodeConfig;
+use super::super::super::error::Base64Error;
 
 #[target_feature(enable = "avx2")]
 #[inline]

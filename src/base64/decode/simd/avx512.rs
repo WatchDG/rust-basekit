@@ -3,9 +3,9 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
+use super::super::super::config::Base64DecodeConfig;
+use super::super::super::error::Base64Error;
 use super::super::decode_full_group_into::decode_full_group_into;
-use crate::base64::config::Base64DecodeConfig;
-use crate::base64::error::Base64Error;
 
 /// Decodes full 16-group blocks (src.len() is a multiple of 64, no padding).
 /// Each 64 base64 characters → 48 output bytes.

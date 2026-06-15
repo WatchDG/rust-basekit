@@ -3,8 +3,8 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use crate::base16::config::Base16EncodeConfig;
-use crate::base16::error::Base16Error;
+use super::super::super::config::Base16EncodeConfig;
+use super::super::super::error::Base16Error;
 
 /// Encodes bytes into base16 (hex) characters using SSSE3.
 ///

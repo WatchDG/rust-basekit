@@ -1,5 +1,5 @@
-use crate::base64::config::Base64DecodeConfig;
-use crate::base64::error::Base64Error;
+use super::super::config::Base64DecodeConfig;
+use super::super::error::Base64Error;
 
 #[inline(always)]
 #[allow(unsafe_op_in_unsafe_fn)]

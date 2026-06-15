@@ -63,7 +63,7 @@ pub(crate) fn decode_full_groups_into(
     ))]
     if is_available_feature_simd_avx512() {
         let written =
-            unsafe { avx512_decode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
+            unsafe { avx512_decode_into(config, &mut dst[dst_offset..], &src[src_offset..])? };
         src_offset += written * 2;
         dst_offset += written;
     }
@@ -74,7 +74,7 @@ pub(crate) fn decode_full_groups_into(
     ))]
     if is_available_feature_simd_avx2() {
         let written =
-            unsafe { avx2_decode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
+            unsafe { avx2_decode_into(config, &mut dst[dst_offset..], &src[src_offset..])? };
         src_offset += written * 2;
         dst_offset += written;
     }
@@ -85,7 +85,7 @@ pub(crate) fn decode_full_groups_into(
     ))]
     if is_available_feature_simd_ssse3() {
         let written =
-            unsafe { ssse3_decode_into(config, &mut dst[dst_offset..], &src[src_offset..]) };
+            unsafe { ssse3_decode_into(config, &mut dst[dst_offset..], &src[src_offset..])? };
         src_offset += written * 2;
         dst_offset += written;
     }

@@ -3,9 +3,9 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
+use super::super::super::config::Base32DecodeConfig;
+use super::super::super::error::Base32Error;
 use super::super::decode_full_group_into::decode_full_group_into;
-use crate::base32::config::Base32DecodeConfig;
-use crate::base32::error::Base32Error;
 
 /// Decodes full 4-group blocks (src.len() is a multiple of 32, no padding).
 /// Each 32 base32 characters → 20 output bytes (4 groups of 8, 2 per 128-bit lane).

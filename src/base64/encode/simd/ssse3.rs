@@ -3,8 +3,8 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use crate::base64::config::Base64EncodeConfig;
-use crate::base64::error::Base64Error;
+use super::super::super::config::Base64EncodeConfig;
+use super::super::super::error::Base64Error;
 
 /// Encodes full 12-byte groups (src.len() is guaranteed to be a multiple of 12).
 /// Each 12 bytes → 16 base64 characters. Tail/padding is handled by the caller.
