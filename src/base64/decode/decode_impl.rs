@@ -16,11 +16,13 @@ pub fn decode(
     }
 
     let mut padding_count = 0;
-    for &byte in data.iter().rev() {
-        if config.padding == Some(byte) {
-            padding_count += 1;
-        } else {
-            break;
+    if let Some(padding) = config.padding {
+        for &byte in data.iter().rev() {
+            if byte == padding {
+                padding_count += 1;
+            } else {
+                break;
+            }
         }
     }
 

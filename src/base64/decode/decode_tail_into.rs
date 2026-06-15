@@ -33,12 +33,23 @@ pub(crate) unsafe fn decode_tail_into(
     for (j, &byte) in tail.iter().enumerate() {
         let pos = src_offset + j;
 
-        if config.padding == Some(byte) {
-            let expected_min_pos = 4 - padding_count;
-            if j < expected_min_pos {
-                return Err(Base64Error::InvalidPadding);
+        if let Some(padding) = config.padding {
+            if byte == padding {
+                let expected_min_pos = 4 - padding_count;
+                if j < expected_min_pos {
+                    return Err(Base64Error::InvalidPadding);
+                }
+                indices[j] = 0;
+            } else {
+                if byte >= 128 {
+                    return Err(Base64Error::InvalidCharacter(byte, pos));
+                }
+                let val = decode_table[byte as usize];
+                if val < 0 {
+                    return Err(Base64Error::InvalidCharacter(byte, pos));
+                }
+                indices[j] = val;
             }
-            indices[j] = 0;
         } else {
             if byte >= 128 {
                 return Err(Base64Error::InvalidCharacter(byte, pos));

@@ -8,7 +8,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-basekit = "0.4.0"
+basekit = "0.4.1"
 ```
 
 ## Usage
@@ -51,7 +51,7 @@ println!("Base32 decoded: {}", decoded);
 
 // Base64
 let enc64 = Base64EncodeConfig::new(ALPHABET_BASE64, Some(PADDING_BASE64));
-let dec64 = Base64DecodeConfig::new(DECODE_TABLE_BASE64, PADDING_BASE64);
+let dec64 = Base64DecodeConfig::new(DECODE_TABLE_BASE64, Some(PADDING_BASE64));
 let encoded = String::try_from(encode64(&enc64, data)).unwrap();
 println!("Base64: {}", encoded);
 let decoded = String::try_from(decode64(&dec64, encoded.as_bytes()).unwrap()).unwrap();
@@ -59,7 +59,7 @@ println!("Base64 decoded: {}", decoded);
 
 // URL-safe Base64
 let enc64url = Base64EncodeConfig::new(ALPHABET_BASE64_URL, Some(PADDING_BASE64));
-let dec64url = Base64DecodeConfig::new(DECODE_TABLE_BASE64_URL, PADDING_BASE64);
+let dec64url = Base64DecodeConfig::new(DECODE_TABLE_BASE64_URL, Some(PADDING_BASE64));
 let encoded = String::try_from(encode64(&enc64url, data)).unwrap();
 println!("Base64 URL: {}", encoded);
 let decoded = String::try_from(decode64(&dec64url, encoded.as_bytes()).unwrap()).unwrap();

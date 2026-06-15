@@ -15,10 +15,8 @@ pub(crate) fn decode_full_group_into(
     let b2 = src[2];
     let b3 = src[3];
 
-    if config.padding == Some(b0)
-        || config.padding == Some(b1)
-        || config.padding == Some(b2)
-        || config.padding == Some(b3)
+    if let Some(padding) = config.padding
+        && (b0 == padding || b1 == padding || b2 == padding || b3 == padding)
     {
         return Err(Base64Error::InvalidPadding);
     }
