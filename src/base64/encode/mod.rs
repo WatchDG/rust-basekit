@@ -10,8 +10,8 @@ mod simd;
 
 pub(crate) use encode_full_group_into::encode_full_group_into;
 pub(crate) use encode_full_groups_into::encode_full_groups_into;
-pub use encode_impl::encode;
-pub use encode_into::encode_into;
+pub use encode_impl::encode64;
+pub use encode_into::encode64_into;
 pub(crate) use encode_into_slice::encode_into_slice;
 pub(crate) use encode_tail_into::encode_tail_into;
 pub use output::Base64EncodeOutput;

@@ -8,7 +8,7 @@ mod output;
 mod simd;
 
 pub(crate) use decode_full_groups_into::decode_full_groups_into;
-pub use decode_impl::decode;
-pub use decode_into::decode_into;
+pub use decode_impl::decode32;
+pub use decode_into::decode32_into;
 pub(crate) use decode_tail_into::decode_tail_into;
 pub use output::Base32DecodeOutput;

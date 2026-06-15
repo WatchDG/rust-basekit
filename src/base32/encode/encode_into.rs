@@ -5,7 +5,7 @@ pub(crate) use super::encode_full_groups_into;
 pub(crate) use super::encode_tail_into;
 
 #[inline]
-pub fn encode_into(
+pub fn encode32_into(
     config: &Base32EncodeConfig,
     dst: &mut [u8],
     src: &[u8],

@@ -1,6 +1,6 @@
 use crate::common::assert_untouched;
 use basekit::base16::{
-    Base16DecodeConfig, Base16Error, DECODE_TABLE_BASE16_UPPERCASE, decode_into,
+    Base16DecodeConfig, Base16Error, DECODE_TABLE_BASE16_UPPERCASE, decode16_into,
 };
 
 fn create_config() -> Base16DecodeConfig {
@@ -11,7 +11,7 @@ fn create_config() -> Base16DecodeConfig {
 fn test_empty() {
     let config = create_config();
     let mut output = vec![0u8; 0];
-    let result = decode_into(&config, &mut output, b"");
+    let result = decode16_into(&config, &mut output, b"");
     assert_eq!(result.unwrap(), 0);
     assert_eq!(output, b"");
 }
@@ -20,7 +20,7 @@ fn test_empty() {
 fn test_single_byte() {
     let config = create_config();
     let mut output = vec![0u8; 1];
-    let result = decode_into(&config, &mut output, b"FF");
+    let result = decode16_into(&config, &mut output, b"FF");
     assert_eq!(result.unwrap(), 1);
     assert_eq!(output, &[0xFF]);
 }
@@ -29,7 +29,7 @@ fn test_single_byte() {
 fn test_multiple_bytes() {
     let config = create_config();
     let mut output = vec![0u8; 4];
-    let result = decode_into(&config, &mut output, b"DEADBEEF");
+    let result = decode16_into(&config, &mut output, b"DEADBEEF");
     assert_eq!(result.unwrap(), 4);
     assert_eq!(output, &[0xDE, 0xAD, 0xBE, 0xEF]);
 }
@@ -38,7 +38,7 @@ fn test_multiple_bytes() {
 fn test_buffer_too_small() {
     let config = create_config();
     let mut output = vec![0u8; 0];
-    let result = decode_into(&config, &mut output, b"FF");
+    let result = decode16_into(&config, &mut output, b"FF");
     assert!(matches!(
         result,
         Err(Base16Error::DestinationBufferTooSmall {
@@ -52,7 +52,7 @@ fn test_buffer_too_small() {
 fn test_buffer_exactly_right_size() {
     let config = create_config();
     let mut output = vec![0u8; 2];
-    let result = decode_into(&config, &mut output, b"0AFF");
+    let result = decode16_into(&config, &mut output, b"0AFF");
     assert_eq!(result.unwrap(), 2);
     assert_eq!(output, &[0x0A, 0xFF]);
 }
@@ -61,7 +61,7 @@ fn test_buffer_exactly_right_size() {
 fn test_buffer_larger_than_needed() {
     let config = create_config();
     let mut output = vec![0u8; 10];
-    let result = decode_into(&config, &mut output, b"0AFF");
+    let result = decode16_into(&config, &mut output, b"0AFF");
     assert_eq!(result.unwrap(), 2);
     assert_eq!(&output[..2], &[0x0A, 0xFF]);
 }
@@ -70,7 +70,7 @@ fn test_buffer_larger_than_needed() {
 fn test_odd_length_error() {
     let config = create_config();
     let mut output = vec![0u8; 10];
-    let result = decode_into(&config, &mut output, b"FFF");
+    let result = decode16_into(&config, &mut output, b"FFF");
     assert!(matches!(result, Err(Base16Error::InvalidLength(3))));
 }
 
@@ -78,7 +78,7 @@ fn test_odd_length_error() {
 fn test_invalid_character_error() {
     let config = create_config();
     let mut output = vec![0u8; 10];
-    let result = decode_into(&config, &mut output, b"FG");
+    let result = decode16_into(&config, &mut output, b"FG");
     assert!(matches!(
         result,
         Err(Base16Error::InvalidCharacter(b'G', 1))
@@ -91,7 +91,7 @@ fn test_roundtrip() {
     let data = b"Hello, World!";
     let encoded = "48656C6C6F2C20576F726C6421";
     let mut output = vec![0u8; data.len()];
-    let _ = decode_into(&config, &mut output, encoded.as_bytes()).unwrap();
+    let _ = decode16_into(&config, &mut output, encoded.as_bytes()).unwrap();
     assert_eq!(&output[..], data);
 }
 
@@ -101,7 +101,7 @@ fn test_no_write_beyond_returned_length() {
 
     let config = create_config();
     let mut output = vec![MARKER; 16];
-    let len = decode_into(&config, &mut output, b"0AFF").unwrap();
+    let len = decode16_into(&config, &mut output, b"0AFF").unwrap();
 
     assert_eq!(len, 2);
     assert_eq!(&output[..len], &[0x0A, 0xFF]);

@@ -1,7 +1,7 @@
 use crate::common::{PATTERNS_2B, PATTERNS_3B, STRINGS, assert_untouched, seed_data};
 use basekit::base64::{
     ALPHABET_BASE64, ALPHABET_BASE64_URL, Base64DecodeConfig, Base64EncodeConfig,
-    DECODE_TABLE_BASE64, DECODE_TABLE_BASE64_URL, decode, decode_into, encode, encode_into,
+    DECODE_TABLE_BASE64, DECODE_TABLE_BASE64_URL, decode64, decode64_into, encode64, encode64_into,
 };
 
 fn enc_config() -> Base64EncodeConfig {
@@ -25,8 +25,8 @@ fn encoded_len_padded(len: usize) -> usize {
 }
 
 fn roundtrip(original: &[u8]) {
-    let encoded = Vec::<u8>::from(encode(&enc_config(), original));
-    let decoded = Vec::<u8>::from(decode(&dec_config(), &encoded).unwrap());
+    let encoded = Vec::<u8>::from(encode64(&enc_config(), original));
+    let decoded = Vec::<u8>::from(decode64(&dec_config(), &encoded).unwrap());
     assert_eq!(
         decoded, original,
         "URL-safe round-trip failed for {:?}",
@@ -37,12 +37,12 @@ fn roundtrip(original: &[u8]) {
 fn roundtrip_into(original: &[u8]) {
     let enc_len = encoded_len_padded(original.len());
     let mut enc_dst = vec![0u8; enc_len];
-    let actual_enc_len = encode_into(&enc_config(), &mut enc_dst, original).unwrap();
+    let actual_enc_len = encode64_into(&enc_config(), &mut enc_dst, original).unwrap();
     assert_eq!(actual_enc_len, enc_len);
 
     let mut dec_dst = vec![0u8; original.len()];
     let actual_dec_len =
-        decode_into(&dec_config(), &mut dec_dst, &enc_dst[..actual_enc_len]).unwrap();
+        decode64_into(&dec_config(), &mut dec_dst, &enc_dst[..actual_enc_len]).unwrap();
     assert_eq!(
         &dec_dst[..actual_dec_len],
         original,
@@ -52,8 +52,8 @@ fn roundtrip_into(original: &[u8]) {
 }
 
 fn roundtrip_no_padding(original: &[u8]) {
-    let encoded = Vec::<u8>::from(encode(&enc_config_no_padding(), original));
-    let decoded = Vec::<u8>::from(decode(&dec_config_no_padding(), &encoded).unwrap());
+    let encoded = Vec::<u8>::from(encode64(&enc_config_no_padding(), original));
+    let decoded = Vec::<u8>::from(decode64(&dec_config_no_padding(), &encoded).unwrap());
     assert_eq!(
         decoded, original,
         "URL-safe no-padding round-trip failed for {:?}",
@@ -124,8 +124,8 @@ fn test_url_safe_differs_from_standard() {
     // [0x00, 0x00, 0xFF] encodes to "AAD/" in standard Base64 and "AAD_" in URL-safe.
     let data = [0x00, 0x00, 0xFF];
 
-    let standard = encode(&Base64EncodeConfig::new(ALPHABET_BASE64, Some(b'=')), &data);
-    let url_safe = encode(&enc_config(), &data);
+    let standard = encode64(&Base64EncodeConfig::new(ALPHABET_BASE64, Some(b'=')), &data);
+    let url_safe = encode64(&enc_config(), &data);
 
     assert_eq!(Vec::<u8>::from(standard), b"AAD/");
     assert_eq!(Vec::<u8>::from(url_safe), b"AAD_");
@@ -134,7 +134,7 @@ fn test_url_safe_differs_from_standard() {
 #[test]
 fn test_standard_decode_rejects_url_safe_characters() {
     let standard_dec = Base64DecodeConfig::new(DECODE_TABLE_BASE64, Some(b'='));
-    let result = decode(&standard_dec, b"AAD_");
+    let result = decode64(&standard_dec, b"AAD_");
 
     assert!(
         matches!(
@@ -150,7 +150,7 @@ fn test_no_write_beyond_returned_length() {
     const MARKER: u8 = 0xCC;
 
     let mut dst = vec![MARKER; 32];
-    let len = encode_into(&enc_config(), &mut dst, b"f").unwrap();
+    let len = encode64_into(&enc_config(), &mut dst, b"f").unwrap();
 
     assert_eq!(len, 4);
     assert_eq!(&dst[..len], b"Zg==");

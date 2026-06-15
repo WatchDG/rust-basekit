@@ -1,11 +1,11 @@
 use super::super::config::Base32DecodeConfig;
 use super::super::error::Base32Error;
-use super::decode_into::decode_into;
+use super::decode_into::decode32_into;
 use super::output::Base32DecodeOutput;
 use crate::utils::init_vec_with;
 
 #[inline]
-pub fn decode(
+pub fn decode32(
     config: &Base32DecodeConfig,
     data: impl AsRef<[u8]>,
 ) -> Result<Base32DecodeOutput, Base32Error> {
@@ -38,7 +38,7 @@ pub fn decode(
 
     let output_len = (clean_len * 5) / 8;
 
-    let output = unsafe { init_vec_with(output_len, |buf| decode_into(config, buf, data))? };
+    let output = unsafe { init_vec_with(output_len, |buf| decode32_into(config, buf, data))? };
 
     Ok(Base32DecodeOutput { inner: output })
 }

@@ -4,7 +4,7 @@ use super::decode_full_groups_into;
 use super::decode_tail_into;
 
 #[inline]
-pub fn decode_into(
+pub fn decode32_into(
     config: &Base32DecodeConfig,
     dst: &mut [u8],
     src: &[u8],

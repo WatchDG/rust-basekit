@@ -1,4 +1,4 @@
-use basekit::base32::{Base32DecodeConfig, Base32Error, DECODE_TABLE_BASE32, decode};
+use basekit::base32::{Base32DecodeConfig, Base32Error, DECODE_TABLE_BASE32, decode32};
 
 fn create_config() -> Base32DecodeConfig {
     Base32DecodeConfig::new(DECODE_TABLE_BASE32, Some(b'='))
@@ -7,7 +7,7 @@ fn create_config() -> Base32DecodeConfig {
 #[test]
 fn test_unpadded_decoder_rejects_padding() {
     let config = Base32DecodeConfig::new(DECODE_TABLE_BASE32, None);
-    let result = decode(&config, b"MY======");
+    let result = decode32(&config, b"MY======");
     assert!(
         matches!(result, Err(Base32Error::InvalidCharacter(b'=', pos)) if pos == 2),
         "unpadded decoder should reject '=' as invalid character"
@@ -16,7 +16,7 @@ fn test_unpadded_decoder_rejects_padding() {
 
 #[test]
 fn test_data_after_padding_is_rejected() {
-    let result = decode(&create_config(), b"MY======A");
+    let result = decode32(&create_config(), b"MY======A");
     assert!(
         matches!(
             result,
@@ -29,7 +29,7 @@ fn test_data_after_padding_is_rejected() {
 #[test]
 fn test_full_block_with_padding_is_rejected() {
     // "MZXW6YTB" is a full 5-byte block and should not have padding.
-    let result = decode(&create_config(), b"MZXW6YTB=");
+    let result = decode32(&create_config(), b"MZXW6YTB=");
     assert!(
         matches!(result, Err(Base32Error::InvalidPadding)),
         "padding after a full block should be invalid"
@@ -38,7 +38,7 @@ fn test_full_block_with_padding_is_rejected() {
 
 #[test]
 fn test_padding_at_start_of_block() {
-    let result = decode(&create_config(), b"=MZXW6===");
+    let result = decode32(&create_config(), b"=MZXW6===");
     assert!(
         matches!(result, Err(Base32Error::InvalidPadding)),
         "padding at the start of a block should be invalid"

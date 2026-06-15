@@ -7,6 +7,6 @@ mod output;
 #[cfg(any(feature = "simd-ssse3", feature = "simd-avx2", feature = "simd-avx512"))]
 mod simd;
 
-pub use decode_impl::decode;
-pub use decode_into::decode_into;
+pub use decode_impl::decode64;
+pub use decode_into::decode64_into;
 pub use output::Base64DecodeOutput;

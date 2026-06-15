@@ -51,8 +51,8 @@ fn test_roundtrip_no_padding_strings() {
 #[test]
 fn test_roundtrip_no_padding_consistency_with_padded() {
     use basekit::base32::{
-        ALPHABET_BASE32, Base32DecodeConfig, Base32EncodeConfig, DECODE_TABLE_BASE32, decode,
-        encode,
+        ALPHABET_BASE32, Base32DecodeConfig, Base32EncodeConfig, DECODE_TABLE_BASE32, decode32,
+        encode32,
     };
 
     let enc_config_pad = Base32EncodeConfig::new(ALPHABET_BASE32, Some(b'='));
@@ -62,13 +62,13 @@ fn test_roundtrip_no_padding_consistency_with_padded() {
 
     let data = b"Hello, World! The quick brown fox jumps over the lazy dog.";
 
-    let encoded_pad = encode(&enc_config_pad, data);
-    let encoded_no_pad = encode(&enc_config_no_pad, data);
+    let encoded_pad = encode32(&enc_config_pad, data);
+    let encoded_no_pad = encode32(&enc_config_no_pad, data);
 
     let decoded_pad =
-        Vec::<u8>::from(decode(&dec_config_pad, &Vec::<u8>::from(encoded_pad)).unwrap());
+        Vec::<u8>::from(decode32(&dec_config_pad, &Vec::<u8>::from(encoded_pad)).unwrap());
     let decoded_no_pad =
-        Vec::<u8>::from(decode(&dec_config_no_pad, &Vec::<u8>::from(encoded_no_pad)).unwrap());
+        Vec::<u8>::from(decode32(&dec_config_no_pad, &Vec::<u8>::from(encoded_no_pad)).unwrap());
 
     assert_eq!(decoded_pad, decoded_no_pad);
     assert_eq!(decoded_pad, data);
@@ -117,7 +117,7 @@ fn test_roundtrip_no_padding_progressive_sizes() {
 
 #[test]
 fn test_roundtrip_no_padding_simd_boundary_sizes() {
-    // SIMD encode paths process blocks of 10/20/40 input bytes.
+    // SIMD encode32 paths process blocks of 10/20/40 input bytes.
     for size in [10, 20, 40] {
         let data: Vec<u8> = seed_data(size);
         roundtrip_no_padding(&data);

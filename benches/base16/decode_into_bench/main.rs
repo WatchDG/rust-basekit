@@ -1,6 +1,6 @@
 use basekit::base16::{
     ALPHABET_BASE16_LOWERCASE, Base16DecodeConfig, Base16EncodeConfig,
-    DECODE_TABLE_BASE16_LOWERCASE, decode_into, encode_into,
+    DECODE_TABLE_BASE16_LOWERCASE, decode16_into, encode16_into,
 };
 use criterion::{BenchmarkId, Criterion, Throughput};
 use std::hint::black_box;
@@ -34,13 +34,13 @@ fn main() {
             let data: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
             let encoded_size = size * 2;
             let mut encoded = vec![0u8; encoded_size];
-            encode_into(&encode_config, &mut encoded, &data).unwrap();
+            encode16_into(&encode_config, &mut encoded, &data).unwrap();
 
             let mut dst = vec![0u8; size];
 
             b.iter(|| {
                 let len = black_box(
-                    decode_into(
+                    decode16_into(
                         black_box(&decode_config),
                         black_box(&mut dst),
                         black_box(&encoded),

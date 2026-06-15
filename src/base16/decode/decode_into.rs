@@ -34,7 +34,7 @@ use super::simd::avx512::avx512_decode_into;
 use super::simd::ssse3::ssse3_decode_into;
 
 #[inline]
-pub fn decode_into(
+pub fn decode16_into(
     config: &Base16DecodeConfig,
     dst: &mut [u8],
     src: &[u8],

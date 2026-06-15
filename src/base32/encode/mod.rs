@@ -9,7 +9,7 @@ mod simd;
 
 pub(crate) use encode_full_group_into::encode_full_group_into;
 pub(crate) use encode_full_groups_into::encode_full_groups_into;
-pub use encode_impl::encode;
-pub use encode_into::encode_into;
+pub use encode_impl::encode32;
+pub use encode_into::encode32_into;
 pub(crate) use encode_tail_into::encode_tail_into;
 pub use output::Base32EncodeOutput;

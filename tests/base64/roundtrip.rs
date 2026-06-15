@@ -193,7 +193,7 @@ fn test_roundtrip_no_padding_progressive_sizes() {
 
 #[test]
 fn test_roundtrip_no_padding_simd_boundary_sizes() {
-    // SIMD encode paths process blocks of 12/24/48 input bytes.
+    // SIMD encode64 paths process blocks of 12/24/48 input bytes.
     for size in [12, 24, 48] {
         let data: Vec<u8> = seed_data(size);
         roundtrip_no_padding(&data);

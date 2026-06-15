@@ -1,6 +1,6 @@
 use basekit::base32::{
-    ALPHABET_BASE32, Base32DecodeConfig, Base32EncodeConfig, DECODE_TABLE_BASE32, decode_into,
-    encode_into,
+    ALPHABET_BASE32, Base32DecodeConfig, Base32EncodeConfig, DECODE_TABLE_BASE32, decode32_into,
+    encode32_into,
 };
 use criterion::{BenchmarkId, Criterion, Throughput};
 use std::hint::black_box;
@@ -34,13 +34,13 @@ fn main() {
             let data: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
             let encoded_size = (size / 5 + 1) * 8;
             let mut encoded = vec![0u8; encoded_size];
-            encode_into(&encode_config, &mut encoded, &data).unwrap();
+            encode32_into(&encode_config, &mut encoded, &data).unwrap();
 
             let mut dst = vec![0u8; size];
 
             b.iter(|| {
                 let len = black_box(
-                    decode_into(
+                    decode32_into(
                         black_box(&decode_config),
                         black_box(&mut dst),
                         black_box(&encoded),

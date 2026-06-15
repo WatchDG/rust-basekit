@@ -4,7 +4,7 @@ use super::output::Base64EncodeOutput;
 use crate::utils::init_vec_with;
 
 #[inline]
-pub fn encode(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64EncodeOutput {
+pub fn encode64(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64EncodeOutput {
     let data = data.as_ref();
 
     if data.is_empty() {

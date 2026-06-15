@@ -8,7 +8,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-basekit = "0.4.1"
+basekit = "0.5.0"
 ```
 
 ## Usage
@@ -17,18 +17,18 @@ basekit = "0.4.1"
 use basekit::base16::{
     Base16DecodeConfig, Base16EncodeConfig,
     ALPHABET_BASE16_LOWERCASE, DECODE_TABLE_BASE16_LOWERCASE,
-    decode as decode16, encode as encode16,
+    decode16, encode16,
 };
 use basekit::base32::{
     Base32DecodeConfig, Base32EncodeConfig,
     ALPHABET_BASE32, DECODE_TABLE_BASE32, PADDING_BASE32,
-    decode as decode32, encode as encode32,
+    decode32, encode32,
 };
 use basekit::base64::{
     Base64DecodeConfig, Base64EncodeConfig,
     ALPHABET_BASE64, ALPHABET_BASE64_URL,
     DECODE_TABLE_BASE64, DECODE_TABLE_BASE64_URL,
-    PADDING_BASE64, decode as decode64, encode as encode64,
+    PADDING_BASE64, decode64, encode64,
 };
 
 let data = b"Hello, World!";

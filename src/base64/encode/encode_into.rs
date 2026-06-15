@@ -3,7 +3,7 @@ use super::super::error::Base64Error;
 use super::encode_into_slice::encode_into_slice;
 
 #[inline]
-pub fn encode_into(
+pub fn encode64_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],

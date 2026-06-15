@@ -4,7 +4,7 @@ use super::decode_full_groups_into::decode_full_groups_into;
 use super::decode_tail_into::decode_tail_into;
 
 #[inline]
-pub fn decode_into(
+pub fn decode64_into(
     config: &Base64DecodeConfig,
     dst: &mut [u8],
     src: &[u8],

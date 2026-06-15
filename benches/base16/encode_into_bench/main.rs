@@ -1,4 +1,4 @@
-use basekit::base16::{ALPHABET_BASE16_LOWERCASE, Base16EncodeConfig, encode_into};
+use basekit::base16::{ALPHABET_BASE16_LOWERCASE, Base16EncodeConfig, encode16_into};
 use criterion::{BenchmarkId, Criterion, Throughput};
 use std::hint::black_box;
 
@@ -28,7 +28,8 @@ fn main() {
 
             b.iter(|| {
                 let len = black_box(
-                    encode_into(black_box(&config), black_box(&mut dst), black_box(&data)).unwrap(),
+                    encode16_into(black_box(&config), black_box(&mut dst), black_box(&data))
+                        .unwrap(),
                 );
                 black_box(len);
             });

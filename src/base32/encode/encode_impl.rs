@@ -1,10 +1,10 @@
 use super::super::config::Base32EncodeConfig;
-use super::encode_into::encode_into;
+use super::encode_into::encode32_into;
 use super::output::Base32EncodeOutput;
 use crate::utils::init_vec_with;
 
 #[inline]
-pub fn encode(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32EncodeOutput {
+pub fn encode32(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32EncodeOutput {
     let data = data.as_ref();
 
     if data.is_empty() {
@@ -28,7 +28,7 @@ pub fn encode(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32Enco
     let output_len = full_groups_count * 8 + tail_output_len;
 
     let output =
-        unsafe { init_vec_with(output_len, |buf| encode_into(config, buf, data)).unwrap() };
+        unsafe { init_vec_with(output_len, |buf| encode32_into(config, buf, data)).unwrap() };
 
     Base32EncodeOutput { inner: output }
 }

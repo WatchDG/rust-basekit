@@ -16,7 +16,7 @@ fn test_encode_into_no_padding_all_tail_lengths() {
 
 #[test]
 fn test_encode_into_no_padding_simd_boundary_sizes() {
-    // SIMD encode paths process blocks of 10/20/40 input bytes.
+    // SIMD encode32 paths process blocks of 10/20/40 input bytes.
     for size in [10, 20, 40] {
         exact_encode_into_no_padding(&seed_data(size));
     }
@@ -34,9 +34,9 @@ fn test_no_write_beyond_returned_length() {
 
     let mut dst = vec![MARKER; 32];
     let len = {
-        use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode_into};
+        use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode32_into};
         let config = Base32EncodeConfig::new(ALPHABET_BASE32, None);
-        encode_into(&config, &mut dst, b"f").unwrap()
+        encode32_into(&config, &mut dst, b"f").unwrap()
     };
 
     assert_eq!(len, 2);

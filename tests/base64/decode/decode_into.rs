@@ -1,5 +1,7 @@
 use crate::common::assert_untouched;
-use basekit::base64::{Base64DecodeConfig, Base64Error, DECODE_TABLE_BASE64, decode, decode_into};
+use basekit::base64::{
+    Base64DecodeConfig, Base64Error, DECODE_TABLE_BASE64, decode64, decode64_into,
+};
 
 fn create_config() -> Base64DecodeConfig {
     Base64DecodeConfig::new(DECODE_TABLE_BASE64, Some(b'='))
@@ -9,7 +11,7 @@ fn create_config() -> Base64DecodeConfig {
 fn test_empty() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"").unwrap();
+    let len = decode64_into(&config, &mut dst, b"").unwrap();
     assert_eq!(len, 0);
 }
 
@@ -17,7 +19,7 @@ fn test_empty() {
 fn test_single_byte() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"Zg==").unwrap();
+    let len = decode64_into(&config, &mut dst, b"Zg==").unwrap();
     assert_eq!(len, 1);
     assert_eq!(&dst[..len], &[102]);
 }
@@ -26,7 +28,7 @@ fn test_single_byte() {
 fn test_two_bytes() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"Zm8=").unwrap();
+    let len = decode64_into(&config, &mut dst, b"Zm8=").unwrap();
     assert_eq!(len, 2);
     assert_eq!(&dst[..len], &[102, 111]);
 }
@@ -35,7 +37,7 @@ fn test_two_bytes() {
 fn test_three_bytes() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"Zm9v").unwrap();
+    let len = decode64_into(&config, &mut dst, b"Zm9v").unwrap();
     assert_eq!(len, 3);
     assert_eq!(&dst[..len], &[102, 111, 111]);
 }
@@ -44,7 +46,7 @@ fn test_three_bytes() {
 fn test_four_bytes() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"Zm9vYg==").unwrap();
+    let len = decode64_into(&config, &mut dst, b"Zm9vYg==").unwrap();
     assert_eq!(len, 4);
     assert_eq!(&dst[..len], &[102, 111, 111, 98]);
 }
@@ -53,7 +55,7 @@ fn test_four_bytes() {
 fn test_five_bytes() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"Zm9vYmE=").unwrap();
+    let len = decode64_into(&config, &mut dst, b"Zm9vYmE=").unwrap();
     assert_eq!(len, 5);
     assert_eq!(&dst[..len], &[102, 111, 111, 98, 97]);
 }
@@ -62,7 +64,7 @@ fn test_five_bytes() {
 fn test_six_bytes() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"Zm9vYmFy").unwrap();
+    let len = decode64_into(&config, &mut dst, b"Zm9vYmFy").unwrap();
     assert_eq!(len, 6);
     assert_eq!(&dst[..len], &[102, 111, 111, 98, 97, 114]);
 }
@@ -71,7 +73,7 @@ fn test_six_bytes() {
 fn test_hello() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"SGVsbG8=").unwrap();
+    let len = decode64_into(&config, &mut dst, b"SGVsbG8=").unwrap();
     assert_eq!(len, 5);
     assert_eq!(&dst[..len], b"Hello");
 }
@@ -80,7 +82,7 @@ fn test_hello() {
 fn test_all_zeros() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"AAAA").unwrap();
+    let len = decode64_into(&config, &mut dst, b"AAAA").unwrap();
     assert_eq!(len, 3);
     assert_eq!(&dst[..len], &[0, 0, 0]);
 }
@@ -89,7 +91,7 @@ fn test_all_zeros() {
 fn test_all_ones() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let len = decode_into(&config, &mut dst, b"////").unwrap();
+    let len = decode64_into(&config, &mut dst, b"////").unwrap();
     assert_eq!(len, 3);
     assert_eq!(&dst[..len], &[0xFF, 0xFF, 0xFF]);
 }
@@ -98,7 +100,7 @@ fn test_all_ones() {
 fn test_invalid_character() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm9v!");
+    let result = decode64_into(&config, &mut dst, b"Zm9v!");
     assert!(matches!(result, Err(Base64Error::InvalidCharacter(_, _))));
 }
 
@@ -106,7 +108,7 @@ fn test_invalid_character() {
 fn test_invalid_character_high_byte() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm\xFFv");
+    let result = decode64_into(&config, &mut dst, b"Zm\xFFv");
     assert!(matches!(
         result,
         Err(Base64Error::InvalidCharacter(0xFF, _))
@@ -117,7 +119,7 @@ fn test_invalid_character_high_byte() {
 fn test_invalid_padding_position() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"=Zm9v");
+    let result = decode64_into(&config, &mut dst, b"=Zm9v");
     assert!(matches!(result, Err(Base64Error::InvalidPadding)));
 }
 
@@ -125,7 +127,7 @@ fn test_invalid_padding_position() {
 fn test_too_much_padding() {
     let config = create_config();
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm9v===");
+    let result = decode64_into(&config, &mut dst, b"Zm9v===");
     assert!(matches!(result, Err(Base64Error::InvalidPadding)));
 }
 
@@ -134,15 +136,15 @@ fn test_invalid_character_at_different_positions() {
     let config = create_config();
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"!m9vYg==");
+    let result = decode64_into(&config, &mut dst, b"!m9vYg==");
     assert!(matches!(result, Err(Base64Error::InvalidCharacter(_, 0))));
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Z!9vYg==");
+    let result = decode64_into(&config, &mut dst, b"Z!9vYg==");
     assert!(matches!(result, Err(Base64Error::InvalidCharacter(_, 1))));
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm!vYg==");
+    let result = decode64_into(&config, &mut dst, b"Zm!vYg==");
     assert!(matches!(result, Err(Base64Error::InvalidCharacter(_, 2))));
 }
 
@@ -151,28 +153,28 @@ fn test_invalid_character_position_4_5_6_7() {
     let config = create_config();
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm9v!g==");
+    let result = decode64_into(&config, &mut dst, b"Zm9v!g==");
     assert!(matches!(
         result,
         Err(Base64Error::InvalidCharacter(b'!', 4))
     ));
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm9vY!==");
+    let result = decode64_into(&config, &mut dst, b"Zm9vY!==");
     assert!(matches!(
         result,
         Err(Base64Error::InvalidCharacter(b'!', 5))
     ));
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm9vYg!=");
+    let result = decode64_into(&config, &mut dst, b"Zm9vYg!=");
     assert!(matches!(
         result,
         Err(Base64Error::InvalidCharacter(b'!', 6))
     ));
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm9vYg!!");
+    let result = decode64_into(&config, &mut dst, b"Zm9vYg!!");
     assert!(matches!(
         result,
         Err(Base64Error::InvalidCharacter(b'!', 6))
@@ -184,21 +186,21 @@ fn test_invalid_high_byte_at_positions() {
     let config = create_config();
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Z\xFFvYg==");
+    let result = decode64_into(&config, &mut dst, b"Z\xFFvYg==");
     assert!(matches!(
         result,
         Err(Base64Error::InvalidCharacter(0xFF, 1))
     ));
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm9v\xFFg==");
+    let result = decode64_into(&config, &mut dst, b"Zm9v\xFFg==");
     assert!(matches!(
         result,
         Err(Base64Error::InvalidCharacter(0xFF, 4))
     ));
 
     let mut dst = vec![0u8; 100];
-    let result = decode_into(&config, &mut dst, b"Zm9vY\xFF==");
+    let result = decode64_into(&config, &mut dst, b"Zm9vY\xFF==");
     assert!(matches!(
         result,
         Err(Base64Error::InvalidCharacter(0xFF, 5))
@@ -222,7 +224,7 @@ fn test_invalid_character_whole_buffer_positions() {
 
     for (data, expected_pos) in test_cases {
         let mut dst = vec![0u8; 100];
-        let result = decode_into(&config, &mut dst, data);
+        let result = decode64_into(&config, &mut dst, data);
         assert!(
             matches!(result, Err(Base64Error::InvalidCharacter(b'!', p)) if p == expected_pos),
             "Failed for data {:?} at position {}",
@@ -238,7 +240,7 @@ fn test_exact_buffer_size() {
     let data = b"SGVsbG8=";
     let output_len = (data.len() / 4) * 3;
     let mut dst = vec![0u8; output_len];
-    let len = decode_into(&config, &mut dst, data).unwrap();
+    let len = decode64_into(&config, &mut dst, data).unwrap();
     assert_eq!(len, 5);
     assert_eq!(&dst[..len], b"Hello");
 }
@@ -248,7 +250,7 @@ fn test_buffer_too_small_returns_error() {
     let config = create_config();
     let data = b"SGVsbG8=";
     let mut dst = vec![0u8; 3];
-    let result = decode_into(&config, &mut dst, data);
+    let result = decode64_into(&config, &mut dst, data);
     assert!(matches!(
         result,
         Err(Base64Error::DestinationBufferTooSmall {
@@ -263,10 +265,10 @@ fn test_consistency_with_decode() {
     let config = create_config();
     let data = b"SGVsbG8gV29ybGQh"; // "Hello World!" encoded without padding
 
-    let result = Vec::<u8>::from(decode(&config, data).unwrap());
+    let result = Vec::<u8>::from(decode64(&config, data).unwrap());
 
     let mut dst = vec![0u8; data.len()];
-    let len = decode_into(&config, &mut dst, data).unwrap();
+    let len = decode64_into(&config, &mut dst, data).unwrap();
 
     assert_eq!(len, result.len());
     assert_eq!(&dst[..len], &result[..]);
@@ -278,7 +280,7 @@ fn test_no_write_beyond_returned_length() {
 
     let config = create_config();
     let mut dst = vec![MARKER; 32];
-    let len = decode_into(&config, &mut dst, b"Zg==").unwrap();
+    let len = decode64_into(&config, &mut dst, b"Zg==").unwrap();
 
     assert_eq!(len, 1);
     assert_eq!(&dst[..len], &[102]);

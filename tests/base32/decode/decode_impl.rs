@@ -1,4 +1,4 @@
-use basekit::base32::{Base32DecodeConfig, Base32Error, DECODE_TABLE_BASE32, decode};
+use basekit::base32::{Base32DecodeConfig, Base32Error, DECODE_TABLE_BASE32, decode32};
 
 fn create_config() -> Base32DecodeConfig {
     Base32DecodeConfig::new(DECODE_TABLE_BASE32, Some(b'='))
@@ -7,63 +7,63 @@ fn create_config() -> Base32DecodeConfig {
 #[test]
 fn test_empty() {
     let config = create_config();
-    let result = decode(&config, b"");
+    let result = decode32(&config, b"");
     assert_eq!(Vec::<u8>::from(result.unwrap()), b"");
 }
 
 #[test]
 fn test_single_byte() {
     let config = create_config();
-    let result = decode(&config, b"MY======");
+    let result = decode32(&config, b"MY======");
     assert_eq!(Vec::<u8>::from(result.unwrap()), &[102u8]);
 }
 
 #[test]
 fn test_two_bytes() {
     let config = create_config();
-    let result = decode(&config, b"MZXQ====");
+    let result = decode32(&config, b"MZXQ====");
     assert_eq!(Vec::<u8>::from(result.unwrap()), &[102, 111]);
 }
 
 #[test]
 fn test_three_bytes() {
     let config = create_config();
-    let result = decode(&config, b"MZXW6===");
+    let result = decode32(&config, b"MZXW6===");
     assert_eq!(Vec::<u8>::from(result.unwrap()), &[102, 111, 111]);
 }
 
 #[test]
 fn test_four_bytes() {
     let config = create_config();
-    let result = decode(&config, b"MZXW6YQ=");
+    let result = decode32(&config, b"MZXW6YQ=");
     assert_eq!(Vec::<u8>::from(result.unwrap()), &[102, 111, 111, 98]);
 }
 
 #[test]
 fn test_five_bytes() {
     let config = create_config();
-    let result = decode(&config, b"MZXW6YTB");
+    let result = decode32(&config, b"MZXW6YTB");
     assert_eq!(Vec::<u8>::from(result.unwrap()), &[102, 111, 111, 98, 97]);
 }
 
 #[test]
 fn test_foo_bar() {
     let config = create_config();
-    let result = decode(&config, b"MZXW6IDCMFZA====");
+    let result = decode32(&config, b"MZXW6IDCMFZA====");
     assert_eq!(Vec::<u8>::from(result.unwrap()), b"foo bar");
 }
 
 #[test]
 fn test_all_zeros() {
     let config = create_config();
-    let result = decode(&config, b"AAAAAAAA");
+    let result = decode32(&config, b"AAAAAAAA");
     assert_eq!(Vec::<u8>::from(result.unwrap()), &[0, 0, 0, 0, 0]);
 }
 
 #[test]
 fn test_all_ones() {
     let config = create_config();
-    let result = decode(&config, b"77777777");
+    let result = decode32(&config, b"77777777");
     assert_eq!(
         Vec::<u8>::from(result.unwrap()),
         &[0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
@@ -73,14 +73,14 @@ fn test_all_ones() {
 #[test]
 fn test_invalid_character() {
     let config = create_config();
-    let result = decode(&config, b"MZXW!");
+    let result = decode32(&config, b"MZXW!");
     assert!(matches!(result, Err(Base32Error::InvalidCharacter(_, _))));
 }
 
 #[test]
 fn test_invalid_character_high_byte() {
     let config = create_config();
-    let result = decode(&config, b"MZ\xFFW6===");
+    let result = decode32(&config, b"MZ\xFFW6===");
     assert!(matches!(
         result,
         Err(Base32Error::InvalidCharacter(0xFF, _))
@@ -90,14 +90,14 @@ fn test_invalid_character_high_byte() {
 #[test]
 fn test_invalid_padding_position() {
     let config = create_config();
-    let result = decode(&config, b"=MZXW6===");
+    let result = decode32(&config, b"=MZXW6===");
     assert!(matches!(result, Err(Base32Error::InvalidPadding)));
 }
 
 #[test]
 fn test_too_much_padding() {
     let config = create_config();
-    let result = decode(&config, b"MZXW6YTB======");
+    let result = decode32(&config, b"MZXW6YTB======");
     assert!(matches!(result, Err(Base32Error::InvalidPadding)));
 }
 
@@ -105,36 +105,36 @@ fn test_too_much_padding() {
 fn test_invalid_character_at_different_positions() {
     let config = create_config();
 
-    let result = decode(&config, b"!ZXW6YTB");
+    let result = decode32(&config, b"!ZXW6YTB");
     assert!(matches!(result, Err(Base32Error::InvalidCharacter(_, 0))));
 
-    let result = decode(&config, b"M!XW6YTB");
+    let result = decode32(&config, b"M!XW6YTB");
     assert!(matches!(result, Err(Base32Error::InvalidCharacter(_, 1))));
 
-    let result = decode(&config, b"MZ!W6YTB");
+    let result = decode32(&config, b"MZ!W6YTB");
     assert!(matches!(result, Err(Base32Error::InvalidCharacter(_, 2))));
 }
 
 #[test]
 fn test_round_trip_hello() {
-    use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode};
+    use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode32};
     let encode_config = Base32EncodeConfig::new(ALPHABET_BASE32, Some(b'='));
     let decode_config = create_config();
 
     let original = b"Hello, World!";
-    let encoded = encode(&encode_config, original);
-    let decoded = Vec::<u8>::from(decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap());
+    let encoded = encode32(&encode_config, original);
+    let decoded = Vec::<u8>::from(decode32(&decode_config, &Vec::<u8>::from(encoded)).unwrap());
     assert_eq!(decoded, original);
 }
 
 #[test]
 fn test_round_trip_random() {
-    use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode};
+    use basekit::base32::{ALPHABET_BASE32, Base32EncodeConfig, encode32};
     let encode_config = Base32EncodeConfig::new(ALPHABET_BASE32, Some(b'='));
     let decode_config = create_config();
 
     let data: Vec<u8> = (0..1000).map(|i| (i * 17 % 256) as u8).collect();
-    let encoded = encode(&encode_config, &data);
-    let decoded = Vec::<u8>::from(decode(&decode_config, &Vec::<u8>::from(encoded)).unwrap());
+    let encoded = encode32(&encode_config, &data);
+    let decoded = Vec::<u8>::from(decode32(&decode_config, &Vec::<u8>::from(encoded)).unwrap());
     assert_eq!(decoded, data);
 }

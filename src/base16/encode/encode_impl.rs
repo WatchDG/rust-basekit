@@ -1,10 +1,10 @@
 use super::super::config::Base16EncodeConfig;
-use super::encode_into::encode_into;
+use super::encode_into::encode16_into;
 use super::output::Base16EncodeOutput;
 use crate::utils::init_vec_with;
 
 #[inline]
-pub fn encode(config: &Base16EncodeConfig, data: impl AsRef<[u8]>) -> Base16EncodeOutput {
+pub fn encode16(config: &Base16EncodeConfig, data: impl AsRef<[u8]>) -> Base16EncodeOutput {
     let data = data.as_ref();
 
     if data.is_empty() {
@@ -14,7 +14,7 @@ pub fn encode(config: &Base16EncodeConfig, data: impl AsRef<[u8]>) -> Base16Enco
     let output_len = data.len() * 2;
 
     let output =
-        unsafe { init_vec_with(output_len, |buf| encode_into(config, buf, data)).unwrap() };
+        unsafe { init_vec_with(output_len, |buf| encode16_into(config, buf, data)).unwrap() };
 
     Base16EncodeOutput { inner: output }
 }
