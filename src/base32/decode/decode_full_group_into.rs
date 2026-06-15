@@ -2,11 +2,9 @@ use super::super::config::Base32DecodeConfig;
 use super::super::error::Base32Error;
 
 #[inline(always)]
-#[allow(unsafe_op_in_unsafe_fn)]
-pub(crate) unsafe fn decode_full_group_into(
+pub(crate) fn decode_full_group_into(
     config: &Base32DecodeConfig,
     dst: &mut [u8],
-    dst_offset: usize,
     src: &[u8],
     src_offset: usize,
 ) -> Result<usize, Base32Error> {
@@ -92,12 +90,11 @@ pub(crate) unsafe fn decode_full_group_into(
     let b3 = ((i4 as u32) << 7) | ((i5 as u32) << 2) | ((i6 as u32) >> 3);
     let b4 = ((i6 as u32) << 5) | (i7 as u32);
 
-    let ptr = dst.as_mut_ptr().add(dst_offset);
-    ptr.write(b0 as u8);
-    ptr.add(1).write(b1 as u8);
-    ptr.add(2).write(b2 as u8);
-    ptr.add(3).write(b3 as u8);
-    ptr.add(4).write(b4 as u8);
+    dst[0] = b0 as u8;
+    dst[1] = b1 as u8;
+    dst[2] = b2 as u8;
+    dst[3] = b3 as u8;
+    dst[4] = b4 as u8;
 
     Ok(5)
 }

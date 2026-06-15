@@ -156,7 +156,7 @@ pub(crate) fn decode_full_groups_into(
     for src_offset in (src_offset..src.len()).step_by(8) {
         let full_group_src = &src[src_offset..src_offset + 8];
         dst_offset +=
-            unsafe { decode_full_group_into(config, dst, dst_offset, full_group_src, src_offset)? };
+            decode_full_group_into(config, &mut dst[dst_offset..], full_group_src, src_offset)?;
     }
 
     Ok(dst_offset)
