@@ -35,6 +35,10 @@ use super::simd::ssse3::ssse3_encode_full_groups_into;
 
 use super::encode_full_group_into;
 
+/// Encodes full groups of input bytes into base32 characters.
+///
+/// `src.len()` must be a multiple of 5. SIMD dispatch is handled here;
+/// any remaining groups are encoded by the scalar fallback.
 #[inline(always)]
 pub(crate) fn encode_full_groups_into(
     config: &Base32EncodeConfig,

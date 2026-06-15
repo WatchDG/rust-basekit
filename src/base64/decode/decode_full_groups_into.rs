@@ -36,6 +36,10 @@ use super::simd::avx512::avx512_decode_full_groups_into;
 ))]
 use super::simd::ssse3::ssse3_decode_full_groups_into;
 
+/// Decodes full groups of base64 characters into bytes.
+///
+/// `src.len()` must be a multiple of 4. SIMD dispatch is handled here;
+/// any remaining groups are decoded by the scalar fallback.
 #[inline(always)]
 pub(crate) fn decode_full_groups_into(
     config: &Base64DecodeConfig,

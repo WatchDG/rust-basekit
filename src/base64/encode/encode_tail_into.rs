@@ -3,6 +3,9 @@ use core::ptr;
 use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
 
+/// Encodes the remaining 1–2 input bytes of a base64 stream.
+///
+/// Writes padding characters when `config.padding` is set.
 #[inline(always)]
 #[allow(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn encode_tail_into(

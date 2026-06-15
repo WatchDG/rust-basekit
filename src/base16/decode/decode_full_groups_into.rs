@@ -33,6 +33,10 @@ use super::simd::avx512::avx512_decode_into;
 ))]
 use super::simd::ssse3::ssse3_decode_into;
 
+/// Decodes full groups of base16 characters into bytes.
+///
+/// `src.len()` must be an even number of characters. SIMD dispatch is handled here;
+/// any remaining characters are decoded by the scalar fallback.
 #[inline(always)]
 pub(crate) fn decode_full_groups_into(
     config: &Base16DecodeConfig,

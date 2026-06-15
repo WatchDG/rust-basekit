@@ -34,6 +34,10 @@ use super::simd::avx512::avx512_encode_full_groups_into;
 ))]
 use super::simd::ssse3::ssse3_encode_full_groups_into;
 
+/// Encodes full groups of input bytes into base64 characters.
+///
+/// `src.len()` must be a multiple of 3. SIMD dispatch is handled here;
+/// any remaining groups are encoded by the scalar fallback.
 #[inline(always)]
 pub(crate) fn encode_full_groups_into(
     config: &Base64EncodeConfig,

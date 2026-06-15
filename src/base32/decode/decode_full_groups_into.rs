@@ -36,6 +36,10 @@ use super::simd::avx2::avx2_decode_full_groups_into;
 ))]
 use super::simd::ssse3::ssse3_decode_full_groups_into;
 
+/// Decodes full groups of base32 characters into bytes.
+///
+/// `src.len()` must be a multiple of 8. SIMD dispatch is handled here;
+/// any remaining groups are decoded by the scalar fallback.
 #[inline(always)]
 pub(crate) fn decode_full_groups_into(
     config: &Base32DecodeConfig,

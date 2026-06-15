@@ -2,6 +2,10 @@ use super::super::config::Base16EncodeConfig;
 use super::super::error::Base16Error;
 use super::encode_full_group_into::encode_full_group_into;
 
+/// Encodes full groups of input bytes into base16 characters.
+///
+/// `src.len()` is always an integer number of bytes (group size is 1).
+/// SIMD dispatch is handled here; any remaining bytes are encoded by the scalar fallback.
 #[cfg(all(
     any(target_arch = "x86", target_arch = "x86_64"),
     feature = "simd-avx2"

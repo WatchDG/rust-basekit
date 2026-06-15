@@ -3,6 +3,9 @@ use core::ptr;
 use super::super::config::Base32EncodeConfig;
 use super::super::error::Base32Error;
 
+/// Encodes the remaining 1–4 input bytes of a base32 stream.
+///
+/// Writes padding characters when `config.padding` is set.
 #[inline(always)]
 #[allow(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn encode_tail_into(

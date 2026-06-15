@@ -1,6 +1,9 @@
 use super::super::config::Base32DecodeConfig;
 use super::super::error::Base32Error;
 
+/// Decodes the remaining 1–7 base32 characters of a stream.
+///
+/// Validates padding position and returns the number of output bytes written.
 #[inline(always)]
 #[allow(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn decode_tail_into(
