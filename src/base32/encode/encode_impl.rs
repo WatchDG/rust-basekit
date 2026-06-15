@@ -7,10 +7,6 @@ use crate::utils::init_vec_with;
 pub fn encode32(config: &Base32EncodeConfig, data: impl AsRef<[u8]>) -> Base32EncodeOutput {
     let data = data.as_ref();
 
-    if data.is_empty() {
-        return Base32EncodeOutput { inner: Vec::new() };
-    }
-
     let full_groups_count = data.len() / 5;
     let remainder = data.len() % 5;
     let tail_output_len = match (remainder, config.padding.is_some()) {

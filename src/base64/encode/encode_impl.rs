@@ -7,21 +7,17 @@ use crate::utils::init_vec_with;
 pub fn encode64(config: &Base64EncodeConfig, data: impl AsRef<[u8]>) -> Base64EncodeOutput {
     let data = data.as_ref();
 
-    if data.is_empty() {
-        return Base64EncodeOutput { inner: Vec::new() };
-    }
-
     let full_groups_count = data.len() / 3;
     let remainder = data.len() % 3;
-    let output_len = full_groups_count * 4
-        + match (remainder, config.padding.is_some()) {
-            (0, _) => 0,
-            (1, true) => 4,
-            (1, false) => 2,
-            (2, true) => 4,
-            (2, false) => 3,
-            _ => unreachable!(),
-        };
+    let tail_output_len = match (remainder, config.padding.is_some()) {
+        (0, _) => 0,
+        (1, true) => 4,
+        (1, false) => 2,
+        (2, true) => 4,
+        (2, false) => 3,
+        _ => unreachable!(),
+    };
+    let output_len = full_groups_count * 4 + tail_output_len;
 
     let output =
         unsafe { init_vec_with(output_len, |buf| encode64_into(config, buf, data)).unwrap() };

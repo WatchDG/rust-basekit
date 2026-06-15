@@ -7,11 +7,10 @@ use crate::utils::init_vec_with;
 pub fn encode16(config: &Base16EncodeConfig, data: impl AsRef<[u8]>) -> Base16EncodeOutput {
     let data = data.as_ref();
 
-    if data.is_empty() {
-        return Base16EncodeOutput { inner: Vec::new() };
-    }
-
-    let output_len = data.len() * 2;
+    let full_groups_count = data.len();
+    let _remainder = 0;
+    let tail_output_len = 0;
+    let output_len = full_groups_count * 2 + tail_output_len;
 
     let output =
         unsafe { init_vec_with(output_len, |buf| encode16_into(config, buf, data)).unwrap() };
