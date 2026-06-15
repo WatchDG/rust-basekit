@@ -48,7 +48,7 @@ pub fn decode32_into(
 
     let mut dst_offset = 0usize;
 
-    dst_offset += decode_full_groups_into(config, dst, src, full_groups)?;
+    dst_offset += decode_full_groups_into(config, dst, &src[..full_groups * 8])?;
 
     if has_tail {
         let tail = &src[full_groups * 8..core::cmp::min(full_groups * 8 + 8, src.len())];

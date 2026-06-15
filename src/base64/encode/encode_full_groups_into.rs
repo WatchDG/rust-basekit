@@ -40,6 +40,22 @@ pub(crate) fn encode_full_groups_into(
     dst: &mut [u8],
     src: &[u8],
 ) -> Result<usize, Base64Error> {
+    debug_assert_eq!(src.len() % 3, 0, "src length must be a multiple of 3");
+
+    if src.is_empty() {
+        return Ok(0);
+    }
+
+    let full_groups_count = src.len() / 3;
+    let output_len = full_groups_count * 4;
+
+    if dst.len() < output_len {
+        return Err(Base64Error::DestinationBufferTooSmall {
+            needed: output_len,
+            provided: dst.len(),
+        });
+    }
+
     let mut dst_offset = 0usize;
 
     #[cfg(any(

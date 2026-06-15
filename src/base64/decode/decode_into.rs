@@ -46,18 +46,16 @@ pub fn decode64_into(
     let full_groups = clean_len / 4;
     let has_tail = total_groups > full_groups;
 
-    unsafe {
-        let mut dst_offset = 0usize;
+    let mut dst_offset = 0usize;
 
-        dst_offset += decode_full_groups_into(config, dst, &src[..full_groups * 4])?;
+    dst_offset += decode_full_groups_into(config, dst, &src[..full_groups * 4])?;
 
-        if has_tail {
-            let src_offset = full_groups * 4;
-            let tail = &src[src_offset..];
-            dst_offset +=
-                decode_tail_into(config, dst, dst_offset, tail, src_offset, padding_count)?;
-        }
-
-        Ok(dst_offset)
+    if has_tail {
+        let src_offset = full_groups * 4;
+        let tail = &src[src_offset..];
+        dst_offset +=
+            unsafe { decode_tail_into(config, dst, dst_offset, tail, src_offset, padding_count)? };
     }
+
+    Ok(dst_offset)
 }

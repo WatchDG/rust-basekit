@@ -41,10 +41,21 @@ pub(crate) fn decode_full_groups_into(
     config: &Base32DecodeConfig,
     dst: &mut [u8],
     src: &[u8],
-    full_groups: usize,
 ) -> Result<usize, Base32Error> {
-    if full_groups == 0 {
+    debug_assert_eq!(src.len() % 8, 0, "src length must be a multiple of 8");
+
+    if src.is_empty() {
         return Ok(0);
+    }
+
+    let full_groups = src.len() / 8;
+    let output_len = full_groups * 5;
+
+    if dst.len() < output_len {
+        return Err(Base32Error::DestinationBufferTooSmall {
+            needed: output_len,
+            provided: dst.len(),
+        });
     }
 
     let mut dst_offset = 0usize;
@@ -142,7 +153,7 @@ pub(crate) fn decode_full_groups_into(
         }
     }
 
-    for src_offset in (src_offset..full_groups * 8).step_by(8) {
+    for src_offset in (src_offset..src.len()).step_by(8) {
         let full_group_src = &src[src_offset..src_offset + 8];
         dst_offset +=
             unsafe { decode_full_group_into(config, dst, dst_offset, full_group_src, src_offset)? };

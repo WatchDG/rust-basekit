@@ -37,13 +37,24 @@ use super::simd::avx512::avx512_decode_full_groups_into;
 use super::simd::ssse3::ssse3_decode_full_groups_into;
 
 #[inline(always)]
-pub(crate) unsafe fn decode_full_groups_into(
+pub(crate) fn decode_full_groups_into(
     config: &Base64DecodeConfig,
     dst: &mut [u8],
     src: &[u8],
 ) -> Result<usize, Base64Error> {
-    if src.len() < 4 {
+    debug_assert_eq!(src.len() % 4, 0, "src length must be a multiple of 4");
+
+    if src.is_empty() {
         return Ok(0);
+    }
+
+    let output_len = (src.len() / 4) * 3;
+
+    if dst.len() < output_len {
+        return Err(Base64Error::DestinationBufferTooSmall {
+            needed: output_len,
+            provided: dst.len(),
+        });
     }
 
     let mut dst_offset = 0usize;

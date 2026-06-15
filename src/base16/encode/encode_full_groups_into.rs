@@ -40,7 +40,9 @@ pub(crate) fn encode_full_groups_into(
     dst: &mut [u8],
     src: &[u8],
 ) -> Result<usize, Base16Error> {
-    debug_assert!(!src.is_empty(), "src must not be empty");
+    if src.is_empty() {
+        return Ok(0);
+    }
 
     let output_len = src.len() * 2;
 
@@ -146,5 +148,5 @@ pub(crate) fn encode_full_groups_into(
         dst_offset += encode_full_group_into(config, &mut dst[dst_offset..], full_group)?;
     }
 
-    Ok(output_len)
+    Ok(dst_offset)
 }

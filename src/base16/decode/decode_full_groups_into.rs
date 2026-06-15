@@ -39,8 +39,11 @@ pub(crate) fn decode_full_groups_into(
     dst: &mut [u8],
     src: &[u8],
 ) -> Result<usize, Base16Error> {
-    debug_assert!(!src.is_empty(), "src must not be empty");
     debug_assert!(src.len().is_multiple_of(2), "src length must be even");
+
+    if src.is_empty() {
+        return Ok(0);
+    }
 
     let output_len = src.len() / 2;
 
@@ -118,6 +121,6 @@ pub(crate) fn decode_full_groups_into(
             dst_offset += 1;
         }
 
-        Ok(output_len)
+        Ok(dst_offset)
     }
 }
