@@ -2,6 +2,7 @@ use super::super::config::Base32DecodeConfig;
 use super::super::error::Base32Error;
 
 #[inline(always)]
+#[allow(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn decode_tail_into(
     config: &Base32DecodeConfig,
     dst: &mut [u8],
@@ -29,7 +30,7 @@ pub(crate) unsafe fn decode_tail_into(
             5 => Ok(3),
             6 => Ok(3),
             7 => Ok(4),
-            _ => panic!("invalid unpadded base32 tail length: {}", tail_len),
+            _ => Err(Base32Error::InvalidPadding),
         },
         _ => Err(Base32Error::InvalidPadding),
     };
@@ -85,39 +86,36 @@ pub(crate) unsafe fn decode_tail_into(
     let b4 = (i6 << 5) | i7;
 
     let bytes_written = bytes_written?;
+    let ptr = dst.as_mut_ptr().add(dst_offset);
 
-    unsafe {
-        let ptr = dst.as_mut_ptr().add(dst_offset);
-
-        match bytes_written {
-            0 => {}
-            1 => {
-                ptr.write(b0 as u8);
-            }
-            2 => {
-                ptr.write(b0 as u8);
-                ptr.offset(1).write(b1 as u8);
-            }
-            3 => {
-                ptr.write(b0 as u8);
-                ptr.offset(1).write(b1 as u8);
-                ptr.offset(2).write(b2 as u8);
-            }
-            4 => {
-                ptr.write(b0 as u8);
-                ptr.offset(1).write(b1 as u8);
-                ptr.offset(2).write(b2 as u8);
-                ptr.offset(3).write(b3 as u8);
-            }
-            5 => {
-                ptr.write(b0 as u8);
-                ptr.offset(1).write(b1 as u8);
-                ptr.offset(2).write(b2 as u8);
-                ptr.offset(3).write(b3 as u8);
-                ptr.offset(4).write(b4 as u8);
-            }
-            _ => panic!("invalid bytes_written value: {}", bytes_written),
+    match bytes_written {
+        0 => {}
+        1 => {
+            ptr.write(b0 as u8);
         }
+        2 => {
+            ptr.write(b0 as u8);
+            ptr.offset(1).write(b1 as u8);
+        }
+        3 => {
+            ptr.write(b0 as u8);
+            ptr.offset(1).write(b1 as u8);
+            ptr.offset(2).write(b2 as u8);
+        }
+        4 => {
+            ptr.write(b0 as u8);
+            ptr.offset(1).write(b1 as u8);
+            ptr.offset(2).write(b2 as u8);
+            ptr.offset(3).write(b3 as u8);
+        }
+        5 => {
+            ptr.write(b0 as u8);
+            ptr.offset(1).write(b1 as u8);
+            ptr.offset(2).write(b2 as u8);
+            ptr.offset(3).write(b3 as u8);
+            ptr.offset(4).write(b4 as u8);
+        }
+        _ => unreachable!(),
     }
 
     Ok(bytes_written)

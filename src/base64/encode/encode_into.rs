@@ -45,11 +45,13 @@ pub fn encode64_into(
     }
 
     if remainder > 0 {
-        dst_offset += encode_tail_into(
-            config,
-            &mut dst[dst_offset..],
-            &src[full_groups_count * 3..],
-        )?;
+        dst_offset += unsafe {
+            encode_tail_into(
+                config,
+                &mut dst[dst_offset..],
+                &src[full_groups_count * 3..],
+            )?
+        };
     }
 
     Ok(dst_offset)

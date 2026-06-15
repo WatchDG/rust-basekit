@@ -2,6 +2,7 @@ use crate::base64::config::Base64DecodeConfig;
 use crate::base64::error::Base64Error;
 
 #[inline(always)]
+#[allow(unsafe_op_in_unsafe_fn)]
 pub(crate) unsafe fn decode_tail_into(
     config: &Base64DecodeConfig,
     dst: &mut [u8],
@@ -17,15 +18,15 @@ pub(crate) unsafe fn decode_tail_into(
     }
 
     let bytes_written = match padding_count {
-        2 => 1,
-        1 => 2,
+        2 => Ok(1),
+        1 => Ok(2),
         0 => match tail_len {
-            1 => 0,
-            2 => 1,
-            3 => 2,
-            _ => panic!("invalid unpadded base64 tail length: {}", tail_len),
+            1 => Ok(0),
+            2 => Ok(1),
+            3 => Ok(2),
+            _ => Err(Base64Error::InvalidPadding),
         },
-        _ => panic!("invalid base64 padding count: {}", padding_count),
+        _ => Err(Base64Error::InvalidPadding),
     };
 
     let decode_table = config.decode_table;
@@ -67,25 +68,24 @@ pub(crate) unsafe fn decode_tail_into(
         | ((indices[2] as u32) << 6)
         | (indices[3] as u32);
 
-    unsafe {
-        let ptr = dst.as_mut_ptr().add(dst_offset);
+    let bytes_written = bytes_written?;
+    let ptr = dst.as_mut_ptr().add(dst_offset);
 
-        match bytes_written {
-            0 => {}
-            1 => {
-                ptr.write((three_bytes >> 16) as u8);
-            }
-            2 => {
-                ptr.write((three_bytes >> 16) as u8);
-                ptr.offset(1).write((three_bytes >> 8) as u8);
-            }
-            3 => {
-                ptr.write((three_bytes >> 16) as u8);
-                ptr.offset(1).write((three_bytes >> 8) as u8);
-                ptr.offset(2).write(three_bytes as u8);
-            }
-            _ => panic!("invalid bytes_written value: {}", bytes_written),
+    match bytes_written {
+        0 => {}
+        1 => {
+            ptr.write((three_bytes >> 16) as u8);
         }
+        2 => {
+            ptr.write((three_bytes >> 16) as u8);
+            ptr.offset(1).write((three_bytes >> 8) as u8);
+        }
+        3 => {
+            ptr.write((three_bytes >> 16) as u8);
+            ptr.offset(1).write((three_bytes >> 8) as u8);
+            ptr.offset(2).write(three_bytes as u8);
+        }
+        _ => unreachable!(),
     }
 
     Ok(bytes_written)

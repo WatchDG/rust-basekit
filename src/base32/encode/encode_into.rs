@@ -53,7 +53,7 @@ pub fn encode32_into(
     }
 
     if let Some(tail) = tail_src {
-        offset += encode_tail_into(config, &mut dst[offset..], tail)?;
+        offset += unsafe { encode_tail_into(config, &mut dst[offset..], tail)? };
     }
 
     Ok(offset)
