@@ -4,7 +4,7 @@ use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
 
 #[inline(always)]
-pub fn encode_tail_into(
+pub(crate) fn encode_tail_into(
     config: &Base64EncodeConfig,
     dst: &mut [u8],
     src: &[u8],

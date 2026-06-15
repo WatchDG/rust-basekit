@@ -1,6 +1,7 @@
 use super::super::config::Base64EncodeConfig;
 use super::super::error::Base64Error;
-use super::encode_into_slice::encode_into_slice;
+use super::encode_full_groups_into::encode_full_groups_into;
+use super::encode_tail_into::encode_tail_into;
 
 #[inline]
 pub fn encode64_into(
@@ -33,17 +34,23 @@ pub fn encode64_into(
         });
     }
 
-    let full_groups_src = if full_groups_count > 0 {
-        Some(&src[..full_groups_count * 3])
-    } else {
-        None
-    };
+    let mut dst_offset = 0usize;
 
-    let tail_src = if tail_output_len > 0 {
-        Some(&src[full_groups_count * 3..])
-    } else {
-        None
-    };
+    if full_groups_count > 0 {
+        dst_offset += encode_full_groups_into(
+            config,
+            &mut dst[..full_groups_count * 4],
+            &src[..full_groups_count * 3],
+        )?;
+    }
 
-    encode_into_slice(config, dst, full_groups_src, tail_src)
+    if remainder > 0 {
+        dst_offset += encode_tail_into(
+            config,
+            &mut dst[dst_offset..],
+            &src[full_groups_count * 3..],
+        )?;
+    }
+
+    Ok(dst_offset)
 }

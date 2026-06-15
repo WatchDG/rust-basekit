@@ -1,4 +1,5 @@
 mod encode_full_group_into;
+mod encode_full_groups_into;
 mod encode_impl;
 mod encode_into;
 mod output;
