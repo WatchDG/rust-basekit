@@ -1,6 +1,7 @@
 /target
 /.trae/documents
 /.trae/specs
+*.log
 *.md
 
 !README.md

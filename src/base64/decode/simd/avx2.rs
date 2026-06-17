@@ -44,16 +44,14 @@ pub(crate) unsafe fn avx2_decode_full_groups_into(
 
         // Any byte >= 128 → invalid ASCII, fall back to scalar for this 32-byte block.
         if _mm256_movemask_epi8(input) != 0 {
-            let mut written = 0usize;
             for group_offset in (0..32).step_by(4) {
-                written += decode_full_group_into(
+                dst_offset += decode_full_group_into(
                     config,
-                    &mut dst[dst_offset + written..],
+                    &mut dst[dst_offset..],
                     &src[src_offset + group_offset..src_offset + group_offset + 4],
                     src_offset + group_offset,
                 )?;
             }
-            dst_offset += written;
             src_offset += 32;
             continue;
         }
@@ -91,18 +89,19 @@ pub(crate) unsafe fn avx2_decode_full_groups_into(
             _mm256_or_si256(_mm256_or_si256(r4, r5), _mm256_or_si256(r6, r7)),
         );
 
-        // Any 0xFF in decoded means an invalid character in the table.
-        if _mm256_movemask_epi8(_mm256_cmpeq_epi8(decoded, _mm256_set1_epi8(-1))) != 0 {
-            let mut written = 0usize;
+        // Any byte with bit 7 set in decoded means an invalid character.
+        // Valid decoded values are 0..=63 (bit 7 = 0), invalid are 0xFF (bit 7 = 1).
+        // vptestz(a, b) == 1 iff (a & b) == 0, so == 0 means at least one byte has bit 7 set.
+        // This replaces vpcmpeqb(decoded, 0xFF) + vpmovmskb with a single vptest instruction.
+        if _mm256_testz_si256(decoded, _mm256_set1_epi8(0x80u8 as i8)) == 0 {
             for group_offset in (0..32).step_by(4) {
-                written += decode_full_group_into(
+                dst_offset += decode_full_group_into(
                     config,
-                    &mut dst[dst_offset + written..],
+                    &mut dst[dst_offset..],
                     &src[src_offset + group_offset..src_offset + group_offset + 4],
                     src_offset + group_offset,
                 )?;
             }
-            dst_offset += written;
             src_offset += 32;
             continue;
         }
@@ -124,15 +123,13 @@ pub(crate) unsafe fn avx2_decode_full_groups_into(
 
         let lo = _mm256_castsi256_si128(packed);
         _mm_storel_epi64(out_ptr as *mut __m128i, lo);
-        let lo_shifted = _mm_srli_si128(lo, 8);
-        let lo_word = _mm_cvtsi128_si32(lo_shifted);
-        core::ptr::write_unaligned(out_ptr.add(8) as *mut i32, lo_word);
+        // pextrd extracts the 32-bit word at index 2 directly — saves 1 uop
+        // compared to psrldq(xmm, 8) + vmovd
+        core::ptr::write_unaligned(out_ptr.add(8) as *mut u32, _mm_extract_epi32(lo, 2) as u32);
 
         let hi = _mm256_extracti128_si256(packed, 1);
         _mm_storel_epi64(out_ptr.add(12) as *mut __m128i, hi);
-        let hi_shifted = _mm_srli_si128(hi, 8);
-        let hi_word = _mm_cvtsi128_si32(hi_shifted);
-        core::ptr::write_unaligned(out_ptr.add(20) as *mut i32, hi_word);
+        core::ptr::write_unaligned(out_ptr.add(20) as *mut u32, _mm_extract_epi32(hi, 2) as u32);
 
         src_offset += 32;
         dst_offset += 24;
